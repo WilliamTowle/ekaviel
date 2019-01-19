@@ -1,0 +1,36 @@
+License:
+   Open Source software - copyright and GPLv2 apply. Briefly:
+	- No warranty/guarantee of fitness, use is at own risk
+	- No restrictions on strictly-private use/copying/modification
+	- No re-licensing this work under more restrictive terms
+	- Redistributing? Include/offer to deliver original source
+   Philosophy/full details at http://www.gnu.org/copyleft/gpl.html
+
+General:
+- source shall not exist in the top level directory
+- builds shall not take place in the source tree (treat it read-only)
+- builds shall not create their final targets in the top level
+ 
+The top level makefile:
+- shall define at least the virtual targets 'help', 'default', and 'all'
+- shall define the virtual target 'default' first, with a sensible result
+- shall define rules to make temporary directories
+- shall 'include' new build rules via 'include' files in source tree
+- making 'clean' shall remove temporary files, leaving "installable" ones
+- making 'realclean' shall remove the build tree (not source/top level)
+
+Include files for final executables/libraries:
+- shall have a virtual target as an entry point
+- shall have rules for only real-file targets otherwise
+- shall have local variables for defines/includes/link flags
+- shall make other 'includes' for associated library targets/define settings
+- shall auto-generate a dependency file if complexity warrants
+
+Executables/libraries with auto-generated dependency files:
+- dependency generation shall use all relevant local define/include variables
+- the "entry point" build rule shall directly prompt build of dependencies
+- shall directly include the dependency file, after an existence test
+- shall use ${MAKE} in virtual target to build 'include'd real-file targets
+
+Executables/libraries without dependencies:
+- the "entry point" rule shall prompt compilation of the final output file

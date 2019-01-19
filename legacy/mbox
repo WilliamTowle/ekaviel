@@ -1,0 +1,1603 @@
+From roberson@hamer.ibd.nrc.ca Mon Oct 31 20:49:22 1994
+Received: from hamer.ibd.nrc.ca by zeno.ibd.nrc.ca via SMTP (/930416.SGI)
+	for cszwt2@scs.leeds.ac.uk id AA04631; Mon, 31 Oct 94 15:18:35 -0600
+Received: by hamer.ibd.nrc.ca (931110.SGI/930416.SGI)
+	for @zeno.ibd.nrc.ca:cszwt2@scs.leeds.ac.uk id AA10672; Mon, 31 Oct 94 15:18:28 -0600
+Date: Mon, 31 Oct 94 15:18:28 -0600
+From: roberson@hamer.ibd.nrc.ca (Walter Roberson)
+Message-Id: <9410312118.AA10672@hamer.ibd.nrc.ca>
+To: cszwt2@scs.leeds.ac.uk, gaw-a@minster.york.ac.uk
+Subject: Re: Modfile player
+Newsgroups: comp.sys.sgi.audio
+In-Reply-To: <1994Oct31.133204.9217@leeds.ac.uk>
+Organization: NRC Institute for Biodiagnostics
+Cc: 
+Status: RO
+
+SGI-specific version, based on previous release of tracker:
+tracker-al.tar.gz, ftp'able from viz.tamu.edu:/pub/sgi/software/tracker
+
+src.doc.ic.ac.uk:/computing/operating-systems/Linux/funet-mirror/util/sound/tracker-4.3-linux.tar.gz
+
+The Makefile has
+
+$(CFLAGS_${MACHINE})
+
+and I don't think SGI's make supports this double substitution.
+
+I enclose the tracker 4.3 compiling info below.
+
+
+I have successfully compiled tracker 4.4 on our SGI IRIX 5.2 system.
+I have the following installed that are relevant:
+
+I  irix4_c              02/07/94  Ansi C, 3.10.1
+I  irix4_c.sw           02/07/94  Ansi C Software
+I  irix4_c.sw.c         02/07/94  Ansi C Compiler
+I  irix4_c.sw.util      02/07/94  Ansi C Utilities
+
+I  irix4_dev            09/08/94  Development System, 4.1.1
+I  irix4_dev.cmplrs_hdr 06/10/94  Base Compiler Headers
+I  irix4_dev.cmplrs_hdr.internal 06/10/94 Base Compiler Internal Headers
+I  irix4_dev.cmplrs_sw  06/10/94  Base Compiler Software
+I  irix4_dev.cmplrs_sw.base 02/07/94 Base Compiler Components
+I  irix4_dev.cmplrs_sw.ld 02/07/94 Base Compiler Loader
+I  irix4_dev.cmplrs_sw.util 02/07/94 Base Compiler Utilities
+I  irix4_dev.hdr        02/07/94  dev Headers
+I  irix4_dev.hdr.lib    02/07/94  Development Environment Headers
+I  irix4_dev.sw         09/08/94  dev Software
+I  irix4_dev.sw.audio   09/08/94  Audio Development Environment
+I  irix4_dev.sw.lib     02/07/94  Development Libraries
+I  irix4_dev.sw.make    06/10/94  Parallel Make Utilities
+
+I  irix4_eoe1           03/30/94  Execution Only Environment 1, 4.0.5
+I  irix4_eoe1.sw        03/30/94  eoe1 Software
+I  irix4_eoe1.sw.cpp    03/30/94  Source Code Preprocessor
+I  irix4_eoe1.sw.unix   03/30/94  Basic IRIX
+
+
+I had to edit the Makefile a bit: I enclose it below:
+
+SGI_IRIX4=1 export SGI_IRIX4
+make clean; make
+
+The '##' lines are lines that are in the original Makefile and so
+indicate places I've had to make changes, except for the line
+## nothing changed below here!  - WDR
+which I've tossed in to show where you can stop paying attention.
+
+   Walter Roberson                 roberson@ibd.nrc.ca
+
+# Makefile for any machine
+# - based on my newer makefile and the GREATE
+# modifications by Mike Battersby
+###############################################################################
+#
+# CONFIGURATION OPTIONS
+#
+
+# Choose your machine type. Possible types as of this version (4.0)
+# are
+#  hpalib, hplow, hp3, dec, solaris, sparc, linux, freebsd, sgi, soundblaster.
+##MACHINE = sparc
+MACHINE=sgi
+
+# The name of your C compiler. For most machines this will be
+# either 'cc' or 'gcc'.
+CC = cc
+
+# The suffix for object files. This will usually be .o, except for sgi (.j)
+## don't use .j for SGI -- WDR
+O = .o
+OPTS=-c
+# O =.j
+# OPTS=-j
+
+# User interface type. Right now, this is Unix as there are no alternatives.
+UI = Unix/./
+
+# Destination directory for tracker binaries and manpage.
+#
+# If you don't wish to use the 'make install' and 'make install.man'
+# commands, you can ignore these.
+BIN_DIR = /usr/local/bin
+MAN_DIR = /usr/local/man
+
+# How to install the binaries and manpage. If you have a unix system,
+# use the GNU install program if you have it, otherwise try 'cp'. For
+# non-unix systems, make this the command for copying a file with the
+# following syntax
+#  <program_name> <source_name> <destination_name>
+#
+# If you don't wish to use the 'make install' and 'make install.man'
+# commands, you can ignore this.
+##INSTALL = install
+INSTALL = bsdinst
+
+# Permissions and user/group id's to install with. Non-unix users
+# should comment these out (alternatively, you can use these to
+# provide arguments for the above $(INSTALL) program). If you want
+# to install tracker setuid root (which will allow it to renice
+# itself when non-root users run it), change the "-m 755" below to
+# "-m 4755". If you do so, you must be root to run make install.
+#
+# If you don't wish to use the 'make install' and 'make install.man'
+# commands, you can ignore these.
+INST_BIN_OPT = -s -m 755 -o root -g root
+INST_MAN_OPT = -m 644 -o root -g root
+###############################################################################
+#
+# C compiler flags and libraries for each machine.
+# Unless you are porting this to a new architecture, you shouldn't
+# need to change these (on the other hand, if you understand what you
+# are doing, go ahead!).
+#
+
+CFLAGS_hpalib = +O3 +OS +ESlit
+LIBS_hpalib   = -lAt -lAlib -lm
+AUDIO_hpalib = Hpux/alib_
+CONFIG_hpalib = Hpux/
+
+CFLAGS_hplow = -Ae +O3 -Wl, -a,archive -s
+LIBS_hplow=-lM
+AUDIO_hplow = Hpux/low_
+CONFIG_hplow = Hpux/
+
+# yet another port to hp! This one might be the best yet.
+CFLAGS_hp3 = +O3 +OS +ESlit
+LIBS_hp3   = -lAt -lAlib -lm
+AUDIO_hp3 = Hpux/3_
+CONFIG_hp3 = Hpux/3_
+
+CFLAGS_solaris = -O
+LIBS_solaris   = -lm
+AUDIO_solaris = Sparc/./
+CONFIG_solaris = Sparc/solaris_
+
+
+CFLAGS_sparc = -O -Bstatic
+LIBS_sparc   = -lm
+AUDIO_sparc = Sparc/./
+CONFIG_sparc = Sparc/
+
+CFLAGS_dec = -O 
+LIBS_dec   = -lm -lAF
+AUDIO_dec = AF/
+CONFIG_dec = AF/dec_
+
+##CFLAGS_sgi = -j -O 
+CFLAGS_sgi = -O
+LIBS_sgi   = -laudio -lm
+AUDIO_sgi = Sgi/./
+CONFIG_sgi = Sgi/
+
+CFLAGS_soundblaster = -O
+LIBS_soundblaster   = -lm
+AUDIO_soundblaster = Soundblaster/
+CONFIG_soundblaster = Soundblaster/
+
+CFLAGS_linux = -N -O2 -funroll-loops
+LIBS_linux   = -lm
+AUDIO_linux = Linux/./
+CONFIG_linux = Linux/
+
+CFLAGS_freebsd = -O6 -funroll-loops
+LIBS_freebsd = -lm
+AUDIO_freebsd = Linux/
+CONFIG_freebsd = Linux/
+
+##CFLAGS = $(CFLAGS_${MACHINE})
+CFLAGS=$(CFLAGS_sgi)
+COPTS = $(OPTS) $(CFLAGS)
+##LIBS = $(LIBS_${MACHINE})
+LIBS=$(LIBS_sgi)
+##CONFIG = $(CONFIG_${MACHINE})
+CONFIG=$(CONFIG_sgi)
+##AUDIO = $(AUDIO_${MACHINE})
+AUDIO=$(AUDIO_sgi)
+
+## nothing changed below here!  - WDR
+
+OBJ_TRACKER = main$O $(AUDIO)audio$O st_read$O commands$O \
+audio$O automaton$O player$O getopt$O open$O tools$O \
+dump_song$O setup_audio$O notes$O display$O \
+$(UI)ui$O prefs$O tags$O autoinit$O
+
+OBJ_ANALYZER = analyzer$O st_read$O open$O dump_song$O tools$O notes$O \
+prefs$O autoinit$O ${UI}ui$O display$O
+
+OBJ_SPLITMOD = split$O tools$O st_read$O dump_song$O open$O notes$O \
+display$O prefs$O autoinit$O $(UI)ui$O
+
+
+all:	config.h tracker randomize analyzer splitmod
+
+config.h:
+	cp $(CONFIG)config.h config.h
+
+install: 
+	$(INSTALL) $(INST_BIN_OPT) tracker $(BIN_DIR)
+	$(INSTALL) $(INST_BIN_OPT) randomize $(BIN_DIR)
+	$(INSTALL) $(INST_BIN_OPT) analyzer $(BIN_DIR)
+
+install.man:
+	$(INSTALL) $(INST_MAN_OPT) docs/tracker.1 $(MAN_DIR)/man1/tracker.1
+
+
+
+devel: 
+	-rm -f $(INSTALL_DIR)/dtracker $(INSTALL_DIR)/splitmod
+	cp tracker $(INSTALL_DIR)/dtracker
+	cp splitmod $(INSTALL_DIR)/splitmod
+
+tracker: ${OBJ_TRACKER}
+	${CC} -o tracker ${CFLAGS} ${OBJ_TRACKER} ${LIBS}
+
+analyzer: ${OBJ_ANALYZER}
+	$(CC) -o analyzer ${CFLAGS} ${OBJ_ANALYZER} ${LIBS}
+
+randomize: randomize.c
+	$(CC) -o randomize ${CFLAGS} randomize.c 
+
+splitmod: ${OBJ_SPLITMOD}
+	$(CC) -o splitmod ${CFLAGS} ${OBJ_SPLITMOD} ${LIBS}
+
+main$O: main.c song.h
+	$(CC) ${COPTS} main.c
+
+tools$O: main.c 
+	$(CC) ${COPTS} tools.c
+
+$(AUDIO)audio$O: $(AUDIO)audio.c 
+	cd `dirname $(AUDIO)`; $(CC) -I.. ${COPTS} audio.c
+
+$(UI)ui$O: $(UI)ui.c
+	cd $(UI); $(CC) -I.. ${COPTS} ui.c
+
+split$O: split.c
+	$(CC) ${COPTS} split.c
+
+open$O: open.c
+	$(CC) ${COPTS} open.c
+
+audio$O: audio.c
+	$(CC) ${COPTS} audio.c
+
+automaton$O: automaton.c song.h channel.h
+	$(CC) ${COPTS} automaton.c
+
+getopt$O: getopt.c getopt.h
+	$(CC) ${COPTS} getopt.c
+
+getopt1$O: getopt1.c getopt.h
+	$(CC) ${COPTS} getopt1.c
+
+player$O: player.c song.h channel.h
+	$(CC) ${COPTS} player.c
+
+st_read$O: st_read.c song.h
+	$(CC) ${COPTS} st_read.c
+
+commands$O: commands.c channel.h song.h
+	$(CC) ${COPTS} commands.c
+
+unix/termio$O: unix/termio.c
+	$(CC) ${COPTS} unix/termio.c
+dump_song$O: dump_song.c
+	$(CC) $(COPTS) dump_song.c
+analyzer$O: analyzer.c
+	$(CC) $(COPTS) analyzer.c
+setup_audio$O: setup_audio.c
+	$(CC) $(COPTS) setup_audio.c
+notes$O: notes.c
+	$(CC) $(COPTS) notes.c
+
+display$O: display.c
+	$(CC) $(COPTS) display.c
+
+
+clean:
+	-rm $(OBJ_TRACKER) $(OBJ_ANALYZER) $(OBJ_SPLITMOD) randomize$O
+	-rm tracker randomize splitmod analyzer core 
+	-rm tracker.tar tracker.tar.Z tracker.lzh
+	-rm config.h
+
+export:
+	-rm tracker.tar.Z
+	-rm tracker.lzh
+	cd ..; lha a tracker/tracker.lzh tracker/*.[ch] \
+	tracker/*/*.[ch] tracker/*/*Docs/* \
+	tracker/Amiga/server/*.[ch] \
+	tracker/man/* \
+	tracker/*akefile tracker/Docs/*
+	cd ..; tar cvf tracker/tracker.tar tracker/*.[ch] \
+	tracker/*/*.[ch] tracker/*/*/*.[ch] \
+	tracker/*/Docs/* \ tracker/man/* tracker/Docs/* tracker/*akefile
+	compress tracker.tar
+
+From cszwt2@scs.leeds.ac.uk Mon Nov 28 13:37:20 1994
+From: cszwt2@scs.leeds.ac.uk
+Received: from csgi48 by csirisa.scs.leeds.ac.uk; Mon, 28 Nov 94 13:37:18 GMT
+Date: Mon, 28 Nov 94 13:37:16 GMT
+Message-Id: <21101.9411281337@csgi48.scs.leeds.ac.uk>
+To: cszwt2@scs.leeds.ac.uk
+Subject: Espie's tracker
+Status: RO
+
+cdipierr@wam.umd.edu (Christopher M. DiPierro) writes:
+> I have the file format for 4/8 channel mods, but I was wondering, where 
+> could I look to find s3m and other popular file formats?  I'm just 
+
+ftp to hornet.eng.ufl.edu /pub/msdos/demos/music/text
+
+From cszwt2@scs.leeds.ac.uk Wed Nov 30 10:48:19 1994
+From: cszwt2@scs.leeds.ac.uk
+Received: from csgi48 by csirisa.scs.leeds.ac.uk; Wed, 30 Nov 94 10:48:16 GMT
+Date: Wed, 30 Nov 94 10:48:15 GMT
+Message-Id: <10852.9411301048@csgi48.scs.leeds.ac.uk>
+To: cszwt2@scs.leeds.ac.uk
+Subject: EKAVIEL: Things to do
+Status: RO
+
+. Samples can be transposed
+
+. (For MIDI) ftp://archive.cs.umbc.edu:/pub/midia
+
+. research EdPlayer
+
+
+From caycp@scs.leeds.ac.uk Fri Dec  2 16:14:56 1994
+From: caycp@scs.leeds.ac.uk
+Received: from csgi26 by csirisa.scs.leeds.ac.uk; Fri, 2 Dec 94 16:14:50 GMT
+Date: Fri, 2 Dec 94 16:14:48 GMT
+Message-Id: <5842.9412021614@csgi26.scs.leeds.ac.uk>
+To: cszwt2@scs.leeds.ac.uk
+Subject: sb
+Status: RO
+
+Xref: mork comp.os.msdos.programmer:12918 comp.music:6191 rec.games.programmer:5211
+Path: mork!netcomsv!decwrl!mips!zaphod.mps.ohio-state.edu!usc!news.bbn.com!noc.near.net!uhasun!smylex!jlee
+From: jlee@smylex.UUCP (Jeff Lee)
+Newsgroups: comp.os.msdos.programmer,comp.music,rec.games.programmer
+Subject: Programming the AdLib/Sound Blaster
+Message-ID: <250-JNEWS-1.2@smylex.UUCP>
+Date: 25 Feb 92 15:02:02 GMT
+Sender: jlee@smylex.UUCP
+Organization: Shipbrook Software  (Newington, CT)
+Lines: 484
+
+Hello, all.  I've updated my doc file on programming the AdLib/Sound Blaster
+cards, and since I'm still getting requests for the original, I decided that
+it would save time to post it here.  Apologies to those who aren't interested.
+
+-------------------------------------------------------------------------------
+
+                      Programming the AdLib/Sound Blaster
+                                FM Music Chips
+                           Version 2.0 (24 Feb 1992)
+
+                  Copyright (c) 1991, 1992 by Jeffrey S. Lee
+
+                               jlee@smylex.uucp
+
+
+ 
+                        Warranty and Copyright Policy
+
+     This document is provided on an "as-is" basis, and its author makes
+     no warranty or representation, express or implied, with respect to
+     its quality performance or fitness for a particular purpose.  In no
+     event will the author of this document be liable for direct, indirect,
+     special, incidental, or consequential damages arising out of the use
+     or inability to use the information contained within.  Use of this
+     document is at your own risk.
+
+     This file may be used and copied freely so long as the applicable
+     copyright notices are retained, and no modifications are made to the
+     text of the document.  No money shall be charged for its distribution
+     beyond reasonable shipping, handling and duplication costs, nor shall
+     proprietary changes be made to this document so that it cannot be
+     distributed freely.  This document may not be included in published
+     material or commercial packages without the written consent of its
+     author.
+
+
+
+                                   Overview
+
+     Two of the most popular sound cards for the IBM-PC, the AdLib and the
+     Sound Blaster, suffer from a real dearth of clear documentation for 
+     programmers.  AdLib Inc. and Creative Labs, Inc. both sell developers'
+     kits for their sound cards, but these are expensive, and (in the case
+     of the Sound Blaster developers' kit) can be extremely cryptic.
+
+     This document is intended to provide programmers with a FREE source
+     of information about the programming of these sound cards.
+
+     The information contained in this document is a combination of 
+     information found in the Sound Blaster Software Developer's Kit, and
+     that learned by painful experience.  Some of the information may not
+     be valid for AdLib cards; if this is so, I apologize in advance.
+
+     Please note that numbers will be given in hexadecimal, unless otherwise
+     indicated.  If a number is written out longhand (sixteen instead of 16)
+     it is in decimal.
+
+ |   Changes from Version 1 of the file will be indicated by the use of change
+ |   bars in the left-hand margin.
+
+
+
+                         Chapter One - Sound Card I/O
+
+     The sound card is programmed by sending data to its internal registers
+     via its two I/O ports:
+
+             0388 (hex) - Address/Status port  (R/W)
+             0389 (hex) - Data port            (W/O)
+
+ |   The Sound Blaster Pro is capable of stereo FM music, which is accessed
+ |   in exactly the same manner.  Ports 0220 and 0221 (hex) are the address/
+ |   data ports for the left speaker, and ports 0222 and 0223 (hex) are the
+ |   ports for the right speaker.  Ports 0388 and 0389 (hex) will cause both
+ |   speakers to output sound.
+
+     The sound card possesses an array of two hundred forty-four registers;
+     to write to a particular register, send the register number (01-F5) to
+     the address port, and the desired value to the data port.
+
+     After writing to the register port, you must wait twelve cycles before 
+     sending the data; after writing the data, eighty-four cycles must elapse
+     before any other sound card operation may be performed.
+
+ |   The AdLib manual gives the wait times in microseconds: three point three
+ |   (3.3) microseconds for the address, and twenty-three (23) microseconds
+ |   for the data.
+ |
+ |   The most accurate method of producing the delay is to read the register
+ |   port six times after writing to the register port, and read the register
+ |   port thirty-five times after writing to the data port.
+
+     The sound card registers are write-only.
+
+     The address port also functions as a sound card status byte.  To 
+     retrieve the sound card's status, simply read port 388.  The status 
+     byte has the following structure:
+
+              7      6      5      4      3      2      1      0
+          +------+------+------+------+------+------+------+------+
+          | both | tmr  | tmr  |              unused              |
+          | tmrs |  1   |  2   |                                  |
+          +------+------+------+------+------+------+------+------+
+
+          Bit 7 - set if either timer has expired.
+              6 - set if timer 1 has expired.
+              5 - set if timer 2 has expired.
+
+
+
+                       Chapter Two - The Registers
+
+The following table shows the function of each register in the sound 
+card.  Registers will be explained in detail after the table.  Registers
+not listed are unused.
+
+   Address      Function
+   -------      ----------------------------------------------------
+     01         Test LSI / Enable waveform control
+     02         Timer 1 data
+     03         Timer 2 data
+     04         Timer control flags
+     08         Speech synthesis mode / Keyboard split note select
+   20..35       Amp Mod / Vibrato / EG type / Key Scaling / Multiple
+   40..55       Key scaling level / Operator output level
+   60..75       Attack Rate / Decay Rate
+   80..95       Sustain Level / Release Rate
+   A0..A8       Frequency (low 8 bits)
+   B0..B8       Key On / Octave / Frequency (high 2 bits)
+     BD         AM depth / Vibrato depth / Rhythm control
+   C0..C8       Feedback strength / Connection type
+   E0..F5       Wave Select
+
+The groupings of twenty-two registers (20-35, 40-55, etc.) have an odd
+order due to the use of two operators for each FM voice.  The following
+table shows the offsets within each group of registers for each operator.
+
+
+   Channel        1   2   3   4   5   6   7   8   9
+   Operator 1    00  01  02  08  09  0A  10  11  12
+   Operator 2    03  04  05  0B  0C  0D  13  14  15
+
+Thus, the addresses of the attack/decay bytes for channel 3 are 62 for
+the first operator, and 65 for the second.  (The address of the second
+operator is always the address of the first operator plus three).
+
+To further illustrate the relationship, the addresses needed to control
+channel 5 are:
+
+    29 - Operator 1  AM/VIB/EG/KSR/Multiplier
+    2C - Operator 2  AM/VIB/EG/KSR/Multiplier
+    49 - Operator 1  KSL/Output Level
+    4C - Operator 2  KSL/Output Level
+    69 - Operator 1  Attack/Decay
+    6C - Operator 2  Attack/Decay
+    89 - Operator 1  Sustain/Release
+    8C - Operator 2  Sustain/Release
+    A4 -             Frequency (low 8 bits)
+    B4 -             Key On/Octave/Frequency (high 2 bits)
+    C4 -             Feedback/Connection Type
+    E9 - Operator 1  Waveform
+    EC - Operator 2  Waveform
+
+
+
+                       Explanations of Registers
+
+Byte 01 - This byte is normally used to test the LSI device.  All bits
+          should normally be zero.  Bit 5, if enabled, allows the FM 
+          chips to control the waveform of each operator.
+
+             7     6     5     4     3     2     1     0
+          +-----+-----+-----+-----+-----+-----+-----+-----+
+          |   unused  | WS  |            unused           |
+          +-----+-----+-----+-----+-----+-----+-----+-----+
+
+
+Byte 02 - Timer 1 Data.  If Timer 1 is enabled, the value in this 
+          register will be incremented until it overflows.  Upon
+          overflow, the sound card will signal a TIMER interrupt
+          (INT 08) and set bits 7 and 6 in its status byte.  The
+          value for this timer is incremented every eighty (80)
+          microseconds.
+
+
+Byte 03 - Timer 2 Data.  If Timer 2 is enabled, the value in this 
+          register will be incremented until it overflows.  Upon
+          overflow, the sound card will signal a TIMER interrupt
+          (INT 08) and set bits 7 and 5 in its status byte.  The
+          value for this timer is incremented every three hundred
+          twenty (320) microseconds.
+
+
+Byte 04 - Timer Control Byte
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     | IRQ | T1  | T2  |     unused      | T2  | T1  |
+     | RST | MSK | MSK |                 | CTL | CTL |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bit 7 - Resets the flags for timers 1 & 2.  If set,
+                  all other bits are ignored.
+          bit 6 - Masks Timer 1.  If set, bit 0 is ignored.
+          bit 5 - Masks Timer 2.  If set, bit 1 is ignored.
+          bit 1 - When clear, Timer 2 does not operate.
+                  When set, the value from byte 03 is loaded into
+                  Timer 2, and incrementation begins.
+          bit 0 - When clear, Timer 1 does not operate.
+                  When set, the value from byte 02 is loaded into
+                  Timer 1, and incrementation begins.
+
+
+Byte 08 - CSM Mode / Keyboard Split.
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     | CSM | Key |              unused               |
+     | sel | Spl |                                   |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     
+          bit 7 - When set, selects composite sine-wave speech synthesis
+                  mode (all KEY-ON bits must be clear).  When clear,
+                  selects FM music mode.
+
+          bit 6 - Selects the keyboard split point (in conjunction with
+                  the F-Number data).  The documentation in the Sound 
+                  Blaster manual is utterly incomprehensible on this;
+                  I can't reproduce it without violating their copyright.
+
+
+Bytes 20-35 - Amplitude Modulation / Vibrato / Envelope Generator Type /
+              Keyboard Scaling Rate / Modulator Frequency Multiple
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     | Amp | Vib | EG  | KSR |  Modulator Frequency  |
+     | Mod |     | Typ |     |       Multiple        |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bit 7 - Apply amplitude modulation when set; AM depth is
+                  controlled by the AM-Depth flag in address BD.
+          bit 6 - Apply vibrato when set;  vibrato depth is controlled
+                  by the Vib-Depth flag in address BD.
+          bit 5 - When set, the sustain level of the voice is maintained
+                  until released; when clear, the sound begins to decay
+                  immediately after hitting the SUSTAIN phase.
+          bit 4 - Keyboard scaling rate.  This is another incomprehensible
+                  bit in the Sound Blaster manual.  From experience, if 
+                  this bit is set, the sound's envelope is foreshortened as
+                  it rises in pitch.
+          bits 3-0 - These bits indicate which harmonic the operator will 
+                  produce sound (or modulation) in relation to the voice's 
+                  specified frequency:
+
+                      0 - one octave below
+                      1 - at the voice's specified frequency
+                      2 - one octave above
+                      3 - an octave and a fifth above
+                      4 - two octaves above
+                      5 - two octaves and a major third above
+                      6 - two octaves and a fifth above
+                      7 - two octaves and a minor seventh above
+                      8 - three octaves above
+                      9 - three octaves and a major second above
+                      A - three octaves and a major third above
+                      B -  "       "     "  "   "     "     "
+                      C - three octaves and a fifth above
+                      D -   "      "     "  "   "     "
+                      E - three octaves and a major seventh above
+                      F -   "      "     "  "   "      "      "
+                  
+
+Bytes 40-55 - Level Key Scaling / Total Level
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |  Scaling  |             Total Level           |
+     |   Level   | 24    12     6     3    1.5   .75 | <-- dB
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bits 7-6 - causes output levels to decrease as the frequency
+                     rises:
+
+                          00   -  no change
+                          10   -  1.5 dB/8ve
+                          01   -  3 dB/8ve
+                          11   -  6 dB/8ve
+
+          bits 5-0 - controls the total output level of the operator.
+                     all bits CLEAR is loudest; all bits SET is the
+                     softest.  Don't ask me why.
+
+
+Bytes 60-75 - Attack Rate / Decay Rate
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |         Attack        |          Decay        |
+     |          Rate         |          Rate         |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bits 7-4 - Attack rate.  0 is the slowest, F is the fastest.
+          bits 3-0 - Decay rate.  0 is the slowest, F is the fastest.
+
+
+Bytes 80-95 - Sustain Level / Release Rate
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |     Sustain Level     |         Release       |
+     | 24    12     6     3  |          Rate         |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bits 7-4 - Sustain Level.  0 is the loudest, F is the softest.
+          bits 3-0 - Release Rate.  0 is the slowest, F is the fastest.
+
+
+Bytes A0-B8 - Octave / F-Number / Key-On
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |        F-Number (least significant byte)      |  (A0-A8)
+     |                                               |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |  Unused   | Key |    Octave       | F-Number  |  (B0-B8)
+     |           | On  |                 | most sig. |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bit   5  - Channel is voiced when set, silent when clear.
+          bits 4-2 - Octave (0-7).  0 is lowest, 7 is highest.
+          bits 1-0 - Most significant bits of F-number.
+
+     In octave 4, the F-number values for the chromatic scale and their 
+     corresponding frequencies would be:
+
+        F Number     Frequency     Note
+           16B          277.2       C#
+           181          293.7       D
+           198          311.1       D#
+           1B0          329.6       E
+           1CA          349.2       F
+           1E5          370.0       F#
+           202          392.0       G
+           220          415.3       G#
+           241          440.0       A
+           263          466.2       A#
+           287          493.9       B
+           2AE          523.3       C
+
+
+Bytes C0-C8 - Feedback / Algorithm
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |         unused        |    Feedback     | Alg |
+     |                       |                 |     |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bits 3-1 - Feedback strength.  If all three bits are set to
+                     zero, no feedback is present.  With values 1-7,
+                     operator 1 will send a portion of its output back
+                     into itself.  1 is the least amount of feedback,
+                     7 is the most.
+          bit 0    - If set to 0, operator 1 modulates operator 2.  In this
+                     case, operator 2 is the only one producing sound.
+                     If set to 1, both operators produce sound directly.
+                     Complex sounds are more easily created if the algorithm
+                     is set to 0.
+
+
+Byte BD - Amplitude Modulation Depth / Vibrato Depth / Rhythm
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     | AM  | Vib | Rhy | BD  | SD  | TOM | Top | HH  |
+     | Dep | Dep | Ena |     |     |     | Cym |     |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bit 7 - Set:    AM depth is 4.8dB
+                  Clear:  AM depth is 1 dB
+          bit 6 - Set:    Vibrato depth is 14 cent
+                  Clear:  Vibrato depth is 7 cent
+          bit 5 - Set:    Rhythm enabled  (6 melodic voices) 
+                  Clear:  Rhythm disabled (9 melodic voices)
+          bit 4 - Bass drum on/off
+          bit 3 - Snare drum on/off
+          bit 2 - Tom tom on/off
+          bit 1 - Cymbal on/off
+          bit 0 - Hi Hat on/off
+
+          Note:  KEY-ON registers for channels 06, 07, and 08 must be OFF
+                 in order to use the rhythm section.  Other parameters
+                 such as attack/decay/sustain/release must also be set
+                 appropriately.
+
+
+Bytes E0-F5 - Waveform Select
+
+        7     6     5     4     3     2     1     0
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+     |               unused              |  Waveform |
+     |                                   |  Select   |
+     +-----+-----+-----+-----+-----+-----+-----+-----+
+
+          bits 1-0 - When bit 5 of address 01 is set, the output waveform
+                     will be distorted according to the waveform indicated
+                     by these two bits.  I'll try to diagram them here,
+                     but this medium is fairly restrictive.
+
+         ___              ___            ___    ___       _      _
+        /   \            /   \          /   \  /   \     / |    / |
+       /_____\_______   /_____\_____   /_____\/_____\   /__|___/__|___
+              \     /
+               \___/
+
+            00              01               10               11
+
+
+
+ |                          Detecting a Sound Card
+ |
+ |   According to the AdLib manual, the 'official' method of checking for a 
+ |   sound card is as follows:
+ |
+ |      1)  Reset both timers by writing 60h to register 4.
+ |      2)  Enable the interrupts by writing 80h to register 4.  NOTE: this
+ |          must be a separate step from number 1.
+ |      3)  Read the status register (port 388h).  Store the result.
+ |      4)  Write FFh to register 2 (Timer 1).
+ |      5)  Start timer 1 by writing 21h to register 4.
+ |      6)  Delay for at least 80 microseconds.
+ |      7)  Read the status register (port 388h).  Store the result.
+ |      8)  Reset both timers and interrupts (see steps 1 and 2).
+ |      9)  Test the stored results of steps 3 and 7 by ANDing them
+ |          with E0h.  The result of step 3 should be 00h, and the 
+ |          result of step 7 should be C0h.  If both are correct, an
+ |          AdLib-compatible board is installed in the computer.
+ |
+ |
+ |                              Making a Sound
+ | 
+ |   Many people have asked me, upon reading this document, what the proper
+ |   register values should be to make a simple sound.  Well, here they are.
+ | 
+ |   First, clear out all of the registers by setting all of them to zero.
+ |   This is the quick-and-dirty method of resetting the sound card, but it
+ |   works.  Note that if you wish to use different waveforms, you must then
+ |   turn on bit 5 of register 1.  (This reset need be done only once, at the
+ |   start of the program, and optionally when the program exits, just to 
+ |   make sure that your program doesn't leave any notes on when it exits.)
+ |
+ |   Now, set the following registers to the indicated value:
+ |
+ |     REGISTER     VALUE     DESCRIPTION
+ |        20          01      Set the modulator's multiple to 1
+ |        40          10      Set the modulator's level to about 40 dB
+ |        60          F0      Modulator attack:  quick;   decay:   long
+ |        80          77      Modulator sustain: medium;  release: medium
+ |        A0          98      Set voice frequency's LSB (it'll be a D#)
+ |        23          01      Set the carrier's multiple to 1
+ |        43          00      Set the carrier to maximum volume (about 47 dB)
+ |        63          F0      Carrier attack:  quick;   decay:   long
+ |        83          77      Carrier sustain: medium;  release: medium
+ |        B0          31      Turn the voice on; set the octave and freq MSB
+ |
+ |   To turn the voice off, set register B0h to 11h (or, in fact, any value 
+ |   which leaves bit 5 clear).  It's generally preferable, of course, to
+ |   induce a delay before doing so.
+ |
+ |
+ |                             Acknowledgements
+ |
+ |   Thanks are due to the following people:
+ |
+ |   Ezra M. Dreisbach (ed10+@andrew.cmu.edu), for providing the information
+ |     about the recommended port write delay from the AdLib manual, and the
+ |     'official' method of detecting an AdLib-compatible sound card.
+ |
+ |   Nathan Isaac Laredo (gt7080a@prism.gatech.edu), for providing the
+ |     port numbers for stereo sound on the Sound Blaster Pro.
+
+
+
+From leeds.ac.uk!bradford.ac.uk!warwick!slxsys!pipex!howland.reston.ans.net!europa.eng.gtefsd.com!library.ucla.edu!ucsbuxb.ucsb.edu!nntp.ucsb.edu!usenet Wed Dec 14 12:31:05 GMT 1994
+Article: 547 of comp.sys.sgi.audio
+Xref: leeds.ac.uk comp.music:17009 comp.sys.sgi.audio:547
+Path: leeds.ac.uk!bradford.ac.uk!warwick!slxsys!pipex!howland.reston.ans.net!europa.eng.gtefsd.com!library.ucla.edu!ucsbuxb.ucsb.edu!nntp.ucsb.edu!usenet
+From: doug@foxtrot.ccmrc.ucsb.edu (Douglas Scott)
+Newsgroups: comp.music,comp.sys.sgi.audio
+Subject: Announcing MiXViews version 1.05 (binaries and/or source)
+Date: 13 Dec 1994 23:57:02 GMT
+Organization: University of California, Santa Barbara
+Lines: 46
+Distribution: world
+Message-ID: <3clcce$kdo@yuggoth.ucsb.edu>
+Reply-To: doug@ccmrc.ucsb.edu
+NNTP-Posting-Host: foxtrot.ucsb.edu
+Status: RO
+
+MiXViews, my graphics-interface sound and data editor/processor, is now  
+released in version 1.05.
+
+It is now available as:
+
+1)  Binary files for SPARC, m68k NeXT, and SGI platforms:
+
+ftp://foxtrot.ccmrc.ucsb.edu/pub/MixViews/binaries/mxv-v1.05-[PLATFORM].tar.gz
+
+and
+
+2)  Source code:
+
+ftp://foxtrot.ccmrc.ucsb.edu/pub/MixViews/source/mxv-v1.05-source.tar.gz
+
+Here is a portion of the README:
+
+************    README file for MiXViews version 1.05.    ************
+
+                       New features in MXV v. 1.05
+
+1) Better support for raw (headerless) data reading for all data types.
+2) Failed open commands no longer open a blank window.
+3) An ASCII dump of LPC , PVOC, and FFT data files can now be done.
+4) A new datafile of type Sound, LPCData, or Envelope can be created via menu
+     from any window.
+5) Many small internal fixups.
+
+
+The source code for version 1.05 is available for those who wish to attempt to  
+compile it.  **Please** read the README file in MixViews/source before grabbing  
+the source itself.  Compiling this source on any platform other than SPARC,  
+SGI, or m68k NeXT is currently unsupported -- though I am willing to help  
+anyone who wishes to attempt other platforms.
+
+				The Future:
+
+MiXViews version 1.06 will likely include a port for the LINUX environment,  
+including .wav file support and sound capability.  A port the the DEC platform  
+is also underway.
+
+--
+Douglas Scott             |             Senior Development Engineer
+Tel: (805) 893-8352       | Center for Computer Music Research and Composition
+Internet (NeXTMail ok):   |        University of California, Santa Barbara
+<doug@ccmrc.ucsb.edu>     |                http://ccmrc.ucsb.edu/ 
+
+
+
+From zappe@sietec.sietec.de Fri Mar  3 11:38:11 1995
+Received: from sietec.sietec.de (root@sietec.sietec.de [141.73.252.1]) by csunb0.leeds.ac.uk (8.6.9/8.6.9) with SMTP id LAA23332 for <cszwt2@scs.leeds.ac.uk>; Fri, 3 Mar 1995 11:36:20 GMT
+Received: from gaea.sietec.de by sietec.sietec.de with SMTP id AA02018
+  (5.67b8/IDA-1.5 for <cszwt2@scs.leeds.ac.uk>); Fri, 3 Mar 1995 13:36:10 +0200
+From: Harald Zappe <Zappe@sietec.de>
+Date: Fri, 3 Mar 95 12:25:58 +0100
+Message-Id: <9503031125.AA17136@gaea.sietec.de>
+To: cszwt2@scs.leeds.ac.uk (W Towle)
+Subject: Re: REQ: -- OctaMED and other module formats --
+Newsgroups: alt.binaries.sounds.mods
+X-Newsreader: TIN [version 1.1 PL9]
+Status: RO
+
+On Sat, 25 Feb 1995 11:52:39 +0000 (GMT) in alt.binaries.sounds.mods you wrote:
+> I am writing a player program which I hope to extend to work on a
+> number of machine platforms, but currently I need to know how
+> OctaMed's file format is arranged. I would also be interested in other
+> popular and 'new' module formats (eg. S3M and XM). I have got the
+> program running for simple soundtracker modules.
+
+There are a lot of modern formats. Some you already mentioned. The next
+easiest you can do is the '6CHN'- and '8CHN'-MOD-format. All the same,
+but more channels (aka tracks).
+Next you could include S3M; most of the effects are the same and the
+Adlib-instruments nearly never occure.
+When you start to support several formats, you will need to detect the
+type of the file. (I've written a little detection routine.)
+
+Multi platform: That's not quite easy. File-IO is already solved in the
+ZIP/UNZIP-Package of InfoZIP. Sound-output might be easiest, when done
+in the *nix-manner (/dev/audio; open(),write(),close()). But how to
+handle the graphic?
+BTW there is already a 'multiplatform'-player written by Marc Espie.
+I don't know where he has uploaded it, but ask archie for tracker4*.*
+(I think, it's a tar.Z).
+
+Back to the formats. I've a collection of most of the modern formats.
+When you tell me your mail-size-limit, I can send you a splitted 
+uuencoded zip including all them. (or watch for MUSFMT10.*)
+
+Nevertheless this collection isn't complete, cause some formats
+where invented later. If you are interested in a specific format,
+just ask me, and I can look at home, where I have some other des-
+criptions.
+
+In hope to help,
+- Harald
+
+--
+>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<
+ zappe@gaea.sietec.de              |  |          or Zappe@sietec.de
+                                   |--+-         
+ Harald Zappe                      |  |/         
+ work: +49-30-386-28328/29            /          
+ home: +49-30-ASK-ME                 /___        
+
+From csc2wto@sgi.leeds.ac.uk Fri Mar 31 13:33:37 1995
+Received: from sun.leeds.ac.uk (sunserv1_ie4.leeds.ac.uk [129.11.228.251]) by csunb0.leeds.ac.uk (8.6.9/8.6.9) with SMTP id NAA10337 for <cszwt2@scs.leeds.ac.uk>; Fri, 31 Mar 1995 13:31:39 +0100
+Received: from sgi006.leeds.ac.uk.sgi.leeds.ac.uk by sun.leeds.ac.uk; Fri, 31 Mar 95 13:31:01 BST
+From: W Towle <csc2wto@sgi.leeds.ac.uk>
+Date: Fri, 31 Mar 95 12:29:30 GMT
+Message-Id: <14670.9503311229@sgi006.leeds.ac.uk.sgi.leeds.ac.uk>
+Received: from sgi006.leeds.ac.uk.sgi.leeds.ac.uk by sgi006.leeds.ac.uk.sgi.leeds.ac.uk; Fri, 31 Mar 95 12:29:30 GMT
+To: csc2wto@sun.leeds.ac.uk
+Subject: tracker commands
+Status: RO
+
+/* commands.c 
+	vi:se ts=3 sw=3:
+ */
+
+/* $Id: commands.c,v 4.0 1994/01/11 17:44:07 espie Exp espie $
+ * $Log: commands.c,v $
+ * Revision 4.0  1994/01/11  17:44:07  espie
+ * Abstracted IO.
+ *
+ * Revision 1.6  1994/01/09  17:36:22  Espie
+ * Generalized open.c.
+ *
+ * Revision 1.5  1994/01/08  02:04:21  Espie
+ * Some notice to status.
+ *
+ * Revision 1.4  1994/01/05  14:54:09  Espie
+ * *** empty log message ***
+ *
+ * Revision 1.3  1994/01/05  13:50:43  Espie
+ * Cosmetic change.
+ *
+ * Revision 1.2  1993/12/28  13:54:44  Espie
+ * Use notice.
+ *
+ * Revision 1.1  1993/12/26  00:55:53  Espie
+ * Initial revision
+ *
+ * Revision 3.15  1993/12/04  16:12:50  espie
+ * Lots of LOCAL added.
+ *
+ * Revision 3.14  1993/11/17  15:31:16  espie
+ * play_note instead of ch->mode.
+ *
+ * Revision 3.13  1993/08/04  11:34:33  espie
+ * *** empty log message ***
+ *
+ * Revision 3.12  1993/07/18  10:39:44  espie
+ * Cleaned up.
+ *
+ * Revision 3.11  1993/07/17  22:23:41  espie
+ * Fixed bug with bad loops.
+ *
+ * Revision 3.9  1993/05/09  14:06:03  espie
+ * Modified the way set_speed works.
+ *
+ * Revision 3.8  1993/04/28  20:13:13  espie
+ * Very small bug with volume (Lawrence).
+ *
+ * Revision 3.7  1993/01/15  14:00:28  espie
+ * Added bg/fg test.
+ *
+ * Revision 3.6  1992/11/27  10:29:00  espie
+ * General cleanup
+ *
+ * Revision 3.5  1992/11/24  10:51:19  espie
+ * More precise vibrato table.
+ *
+ * Revision 3.4  1992/11/23  10:12:23  espie
+ * *** empty log message ***
+ *
+ * Revision 3.3  1992/11/22  17:20:01  espie
+ * Simplified delay_pattern.
+ *
+ * Revision 3.2  1992/11/20  14:53:32  espie
+ * Added finetune.
+ *
+ * Revision 3.1  1992/11/19  20:44:47  espie
+ * Protracker commands.
+ *
+ * Revision 3.0  1992/11/18  16:08:05  espie
+ * New release.
+ *
+ * Revision 2.12  1992/11/13  13:24:24  espie
+ * Added some extended commands: E12AB, and some.
+ * now use set_volume in audio.c. All the device-dependent operation
+ * is there.
+ * Defensive programming: check the range of each note
+ * for arpeggio setup.
+ * Structured part of the code, especially replay ``automaton''
+ * and setting up of effects.
+ *
+ * Revision 1.9  1991/11/17  17:09:53  espie
+ * Added missing prototypes.
+ * Dynamic oversample and frequency.
+ * Added arpeggio.
+ * Fixed up vibrato depth.
+ * Added vibslide and portaslide.
+ * Added command 9.
+ */
+
+#include <stdio.h>
+
+#include "defs.h"
+#include "channel.h"
+#include "song.h"
+#include "extern.h"
+     
+ID("$Id: commands.c,v 4.0 1994/01/11 17:44:07 espie Exp espie $")
+
+/* sine table for the vibrato effect (obtained through build.c) */
+
+int vibrato_table[64] = 
+   {
+   0,50,100,149,196,241,284,325,362,396,426,452,473,490,502,510,512,
+   510,502,490,473,452,426,396,362,325,284,241,196,149,100,50,0,-49,
+   -99,-148,-195,-240,-283,-324,-361,-395,-425,-451,-472,-489,-501,
+   -509,-511,-509,-501,-489,-472,-451,-425,-395,-361,-324,-283,-240,
+   -195,-148,-99,-49
+   };
+
+/***
+ *
+ *
+ * setting up effects/doing effects.
+ * The set_xxx gets called while parsing the effect,
+ * the do_xxx gets called each tick, and update the
+ * sound parameters while playing it.
+ *
+ *
+ ***/
+
+
+void do_nothing(ch)
+struct channel *ch;
+   {
+   }
+
+LOCAL void set_nothing(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   }
+
+/* slide pitch (up or down) */
+LOCAL void do_slide(ch)
+struct channel *ch;
+   {
+   ch->pitch += ch->slide;
+   ch->pitch = MIN(ch->pitch, MAX_PITCH);
+   ch->pitch = MAX(ch->pitch, MIN_PITCH);
+   set_current_pitch(ch, ch->pitch);
+   }
+
+LOCAL void set_upslide(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_slide;
+   if (a->para)
+      ch->slide = a->para;
+   }
+
+LOCAL void set_downslide(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_slide;
+   if (a->para)
+      ch->slide = -a->para;
+   }
+
+/* modulating the pitch with vibrato */
+LOCAL void do_vibrato(ch)
+struct channel *ch;
+   {
+   int offset;
+
+      /* this is no longer a literal transcription of the pt
+       * code. I have rescaled the vibrato table.
+       */
+   ch->viboffset += ch->vibrate;
+   ch->viboffset &= 63;
+      /* please don't use logical shift on signed values */
+   offset = (vibrato_table[ch->viboffset] * ch->vibdepth)/256;
+      /* temporary update of only the step value,
+       * note that we do not change the saved pitch.
+       */
+   set_current_pitch(ch, ch->pitch + offset);
+   }
+
+LOCAL void set_vibrato(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_vibrato;
+   if (HI(a->para))
+      ch->vibrate = HI(a->para);
+   if (LOW(a->para))
+      ch->vibdepth = LOW(a->para);
+   }
+
+/* arpeggio looks a bit like chords: we alternate between two
+ * or three notes very fast.
+ */
+LOCAL void do_arpeggio(ch)
+struct channel *ch;
+   {
+   if (++ch->arpindex >= MAX_ARP)
+      ch->arpindex =0;
+   set_current_pitch(ch, ch->arp[ch->arpindex]);
+   }
+
+LOCAL void set_arpeggio(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+      /* arpeggio can be installed relative to the
+       * previous note, so we have to check that there
+       * actually is a current(previous) note
+       */
+   if (ch->note == NO_NOTE)
+      {
+      status("No note present for arpeggio");
+      error = FAULT;
+      }
+   else
+      {
+      int note;
+
+      ch->arp[0] = pitch_table[ch->note][ch->finetune];
+      note = ch->note + HI(a->para);
+      if (note < NUMBER_NOTES)
+         ch->arp[1] = pitch_table[note][ch->finetune];
+      else
+         {
+         status("Arpeggio note out of range");
+         error = FAULT;
+         }
+      note = ch->note + LOW(a->para);
+      if (note < NUMBER_NOTES)
+         ch->arp[2] = pitch_table[note][ch->finetune];
+      else
+         {
+         status("Arpeggio note out of range");
+         error = FAULT;
+         }
+      ch->arpindex = 0;
+      ch->adjust = do_arpeggio;
+      }
+   }
+
+/* volume slide. Mostly used to simulate waveform control.
+ * (attack/decay/sustain).
+ */
+LOCAL void do_slidevol(ch)
+struct channel *ch;
+   {
+   set_current_volume(ch, ch->volume + ch->volumerate);
+   }
+
+/* note that volumeslide does not have a ``take default''
+ * behavior. If para is 0, this is truly a 0 volumeslide.
+ * Issue: is the test really necessary ? Can't we do
+ * a HI(para) - LOW(para). Answer: protracker does not.
+ */
+LOCAL void parse_slidevol(ch, para)
+struct channel *ch;
+int para;
+   {
+   if (LOW(para))
+      ch->volumerate = -LOW(para);
+   else
+      ch->volumerate = HI(para);
+   }
+
+LOCAL void set_slidevol(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_slidevol;
+   parse_slidevol(ch, a->para);
+   }
+
+/* portamento: gets from a given pitch to another.
+ * We can simplify the routine by cutting it in
+ * a pitch up and pitch down part while setting up
+ * the effect.
+ */
+LOCAL void do_portamento(ch)
+struct channel *ch;
+   {
+   if (ch->pitch < ch->pitchgoal)
+      {
+      ch->pitch += ch->pitchrate;
+      ch->pitch = MIN(ch->pitch, ch->pitchgoal);
+      }
+   else if (ch->pitch > ch->pitchgoal)
+      {
+      ch->pitch -= ch->pitchrate;
+      ch->pitch = MAX(ch->pitch, ch->pitchgoal);
+      }
+      /* if we want to implement funk glissando, we need a change right
+       * there
+       */
+   set_current_pitch(ch, ch->pitch);
+   }
+
+/* if para and pitch are 0, this is obviously a continuation
+ * of the previous portamento.
+ */
+LOCAL void set_portamento(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_portamento;
+   if (a->para)
+      ch->pitchrate = a->para;
+   if (a->pitch)
+      ch->pitchgoal = a->pitch;
+   }
+
+/*
+ * combined commands.
+ */
+LOCAL void do_portaslide(ch)
+struct channel *ch;
+   {
+   do_portamento(ch);
+   do_slidevol(ch);
+   }
+
+LOCAL void set_portaslide(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_portaslide;
+   if (a->pitch)
+      ch->pitchgoal = a->pitch;
+   parse_slidevol(ch, a->para);
+   }
+
+LOCAL void do_vibratoslide(ch)
+struct channel *ch;
+   {
+   do_vibrato(ch);
+   do_slidevol(ch);
+   }
+
+LOCAL void set_vibratoslide(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->adjust = do_vibratoslide;
+   parse_slidevol(ch, a->para);
+   }
+
+/***
+ *
+ *  effects that just need a setup part
+ *
+ ***/
+
+/* IMPORTANT: because of the special nature of
+ * the player, we can't process each effect independently,
+ * we have to merge effects from the four channel before
+ * doing anything about it. For instance, there can be 
+ * several speed change in the same note.
+ */
+LOCAL void set_speed(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   if (a->para >= 32)
+      {
+      a->new_finespeed = a->para;
+      a->do_stuff |= SET_FINESPEED;
+      }
+   else if (a->para)
+      {
+      a->new_speed = a->para;
+      a->do_stuff |= SET_SPEED;
+      }
+   }
+
+LOCAL void set_skip(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+      /* BCD decoding in read.c */
+   a->new_note = a->para;
+   a->do_stuff |= SET_SKIP;
+   }
+
+LOCAL void set_fastskip(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   a->new_pattern = a->para;
+   a->do_stuff |= SET_FASTSKIP;
+   }
+
+/* immediate effect: starts the sample somewhere
+ * off the start.
+ */
+LOCAL void set_offset(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   set_position(ch, a->para * 256);
+   }
+
+/* change the volume of the current channel.
+ * Is effective until there is a new set_volume,
+ * slide_volume, or an instrument is reloaded 
+ * explicitly by giving its number. Obviously, if
+ * you load an instrument and do a set_volume in the
+ * same note, the set_volume will take precedence.
+ */
+LOCAL void set_volume(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   set_current_volume(ch, a->para);
+   }
+
+
+
+/***
+ *
+ * EXTENDED COMMANDS
+ *
+ ***/
+
+/* extended command: retrig note at a fast pace
+ */
+LOCAL void do_retrig(ch)
+struct channel *ch;
+   {
+   if (--ch->current <= 0)
+      {
+      reset_note(ch, ch->note, ch->pitch);
+      ch->current = ch->retrig;
+      }
+   }
+
+LOCAL void set_retrig(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->retrig = a->para;
+   ch->current = ch->retrig;
+   ch->adjust = do_retrig;
+   }
+
+/* extended command: start note after a small
+ * delay
+ */
+LOCAL void do_latestart(ch)
+struct channel *ch;
+   {
+   if (--ch->current <= 0)
+      {
+      reset_note(ch, ch->note, ch->pitch);
+      ch->adjust = do_nothing;
+      }
+   }
+
+LOCAL void set_late_start(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   play_note(ch->audio, NULL, 0);
+   ch->current = a->para;
+   ch->adjust = do_latestart;
+   }
+
+/* extended command: cut note after some time.
+ * Note we only kill the volume, as protracker does...
+ */
+LOCAL void do_cut(ch)
+struct channel *ch;
+   {
+   if (ch->retrig)
+      {
+      if (--ch->retrig == 0)
+         set_current_volume(ch, 0);
+      }
+   }
+
+LOCAL void set_note_cut(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->retrig = a->para;
+   ch->adjust = do_cut;
+   }
+
+
+LOCAL void set_smooth_up(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->pitch += a->para;
+   ch->pitch = MIN(ch->pitch, MAX_PITCH);
+   ch->pitch = MAX(ch->pitch, MIN_PITCH);
+   set_current_pitch(ch, ch->pitch);
+   }
+
+LOCAL void set_smooth_down(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->pitch -= a->para;
+   ch->pitch = MIN(ch->pitch, MAX_PITCH);
+   ch->pitch = MAX(ch->pitch, MIN_PITCH);
+   set_current_pitch(ch, ch->pitch);
+   }
+
+LOCAL void set_change_finetune(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   ch->finetune = a->para;
+   }
+
+
+LOCAL void set_loop(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+      /* Note: the current implementation of protracker
+       * does not allow for a jump from pattern to pattern,
+       * even though it looks like a logical extension to the current 
+       * format.
+       */
+   if (a->para == 0) 
+      a->loop_note_num = a->note_num;
+   else
+      {
+      if (a->loop_counter == 0)
+         a->loop_counter = a->para + 1;
+      /* We have to defer the actual count-down and note jump
+       * to automaton.c, because some modules include several
+       * loops on the same measure, which is a bit confusing
+       * (see don't you want me)
+       */
+      a->do_stuff |= JUMP_PATTERN;
+      }
+   }
+
+LOCAL void set_smooth_upvolume(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   set_current_volume(ch, ch->volume + a->para);
+   }
+
+LOCAL void set_smooth_downvolume(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   set_current_volume(ch, ch->volume - a->para);
+   }
+
+
+LOCAL void set_delay_pattern(a, ch)
+struct automaton *a;
+struct channel *ch;
+   {
+   a->counter -= (a->para + 1) * a->speed;
+   a->do_stuff |= DELAY_PATTERN;
+   }
+
+
+
+/* Initialize the whole effect table */
+
+void init_effects(table)
+void (*table[]) P((struct automaton *a, struct channel *ch));
+   {
+   int i;
+
+   for (i = 0; i < NUMBER_EFFECTS; i++)
+      table[i] = set_nothing;
+   table[EFF_ARPEGGIO] = set_arpeggio;
+   table[EFF_SPEED] = set_speed;
+   table[EFF_SKIP] = set_skip;
+   table[EFF_FF] = set_fastskip;
+   table[EFF_VOLUME] = set_volume;
+   table[EFF_VOLSLIDE] = set_slidevol;
+   table[EFF_OFFSET] = set_offset;
+   table[EFF_PORTA] = set_portamento;
+   table[EFF_PORTASLIDE] = set_portaslide;
+   table[EFF_UP] = set_upslide;
+   table[EFF_DOWN] = set_downslide;
+   table[EFF_VIBRATO] = set_vibrato;
+   table[EFF_VIBSLIDE] = set_vibratoslide;
+   table[EFF_SMOOTH_UP] = set_smooth_up;
+   table[EFF_SMOOTH_DOWN] = set_smooth_down;
+   table[EFF_CHG_FTUNE] = set_change_finetune;
+   table[EFF_LOOP] = set_loop;
+   table[EFF_RETRIG] = set_retrig;
+   table[EFF_S_UPVOL] = set_smooth_upvolume;
+   table[EFF_S_DOWNVOL] = set_smooth_downvolume;
+   table[EFF_NOTECUT] = set_note_cut;
+   table[EFF_LATESTART] = set_late_start;
+   table[EFF_DELAY] = set_delay_pattern;
+   }
+
+
+From cszwt2@scs.leeds.ac.uk Tue Apr  4 09:30:49 1995
+From: <cszwt2@scs.leeds.ac.uk>
+Received: from csirisa.scs.leeds.ac.uk (csirisa.leeds.ac.uk [129.11.144.129]) by csunb0.leeds.ac.uk (8.6.9/8.6.9) with ESMTP id JAA26699 for <cszwt2@scs.leeds.ac.uk>; Tue, 4 Apr 1995 09:28:49 +0100
+Received: from csgi16.scs.leeds.ac.uk by csirisa.scs.leeds.ac.uk; Tue, 4 Apr 1995 09:30:46 +0100
+Date: Tue, 4 Apr 1995 09:30:46 +0100
+Message-Id: <17629.199504040830@csgi16.scs.leeds.ac.uk>
+To: cszwt2@scs.leeds.ac.uk
+Subject: ekaviel-malloc
+Status: RO
+
+#ifdef MALLOC_NOT_IN_STDLIB
+#include <malloc.h>
+#else
+#include <stdlib.h>
+#endif
+

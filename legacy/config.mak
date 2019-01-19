@@ -1,0 +1,10 @@
+CC=/usr/bin/gcc
+LD=/usr/bin/gcc
+TOPLEV=/mnt/hda12/wills-0701/ektemp/tcdev-0.6.9p0404
+SRCROOT=${TOPLEV}/src
+BLDROOT=${TOPLEV}/$(shell echo "build-"`uname -m`)
+SCRIPTS=${TOPLEV}/scripts
+AUDPATH=audLinux
+OSDEFS=-DOS_Linux
+AUDINCL=-I${SRCROOT}/audLinux
+LIBS=-lm

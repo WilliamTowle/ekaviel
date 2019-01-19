@@ -1,0 +1,17 @@
+#!/bin/sh
+
+[ "$CC" ] || CC=gcc
+
+do_cpp()
+{
+	${CC} -E ${CFGDEFS} $* \
+		| grep '^# [0-9][0-9]* "' \
+		| while read FLINE ; do
+
+		echo "${FLINE}" | sed 's/^[^"]*"//' | sed 's/".*//'
+	done
+}
+
+. `dirname $0`/detect.cache || exit 1
+
+do_cpp $* | sort -u

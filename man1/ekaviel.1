@@ -1,0 +1,206 @@
+.TH ekaviel 1 v1.53b Ekaviel
+.PD
+.SH NAME
+ekaviel \- music module player
+.SH SYNOPSIS
+\fBekaviel\fR [\fIoptions\fP] [\fIfilename\fP] [...]
+.SH DESCRIPTION
+\fIEkaviel\fP plays music files (aka 'modules') via the computer's
+audio channels. Modules are \fInot\fP just samples, but files that
+contain a digital form of musical score, and the instruments
+(often in the form of samples) built in. Such modules can be
+produced with popular editors, such as SoundTracker and MED/
+OctaMED
+.br
+For further details, see the DETAILS section
+.SH OPTIONS
+.TP 8
+.B -bleed\fP <0-255>
+Simulate being in a room on headphones.
+.br
+0 is pure stereo,
+.br
+128 is 100% bleed (ie. mono)
+.br
+255 is pure stereo, left and right speakers swapped
+.TP 8
+.B -gui/-nogui\fP
+Run ekaviel with/without gui (override default)
+.br
+.TP 8
+.B -interact\fP <n>
+Set the interactivity level:
+.br
+0 is off (no keyboard input)
+.br
+1 is minimal keyboard input checking
+.br
+2 is most frequent checking of input; because of the
+cpu-intensive nature, \fB-outrate 8000\fP is implicit when
+\fB-interact 2\fP is set.
+.TP 8
+.B -limit\fP
+Use a lookup table for extra speed. Nonstandard note
+frequencies are not allowed. Is the default for Irix
+4 machines. See also \fB-unlimit\fP
+.TP 8
+.B -loop\fP
+Makes \fIekaviel\fP loop round the songs in the song list,
+until the ESCape key is pressed
+.br
+** NOTE **: The ESCape key is ignored if \fB\-interact 0\fP
+has been specified
+.TP 8
+.B -outrate\fP <speed>
+Set the output rate in hertz (where hardware allows)
+Large values (typically 44.1K, ie. CD quality) imply
+greater CPU demand, which cannot necessarily be met;
+if not met, this results in "stuttered" output.
+.br
+Refer to the audio manual pages for the hertz values
+that the hardware can accept. Default value ie 22050
+unless full interaction has been requested
+.TP 8
+.B -repeat\fP <times>
+Play (without reloading) the next named song a given
+number of times. Zero means zero, not infinity.
+.TP 8
+.B -seq\fP <list-posn>
+Start the song from the given offset in the sequence
+list (the default value is zero, which is always the
+position number for the start)
+.TP 8
+.B -shuffle\fP
+Random play (initially generates a seed with \fItime\fP(2)
+and uses \fIrandom\fP(3B) to make random-sized jumps round
+a circular linked list of unplayed modules)
+.TP 8
+.B -stereo\fP | \fB\-mono\fP
+Put the audio hardware in stereo or mono output mode
+(where available). The \fB-bleed\fP setting has no meaning
+where \fB-mono\fP has been specified.
+.TP 8
+.B -sync
+Enable synchronisation of audio and display
+.TP 8
+.B -transpose\fP <n>
+Set the pitch transpose. Overrides transpose in song
+Sadly, -ve numbers look like bad options...
+.br
+.TP 8
+.B -unlimit\fP
+Forces \fIEkaviel\fP to calculate all frequency values, at
+the expense of processor time. Removes limits on the
+values allowed that are normally imposed by software
+See also \fB-limit\fP
+.TP 8
+.B -verbose\fP <n>
+Set verbosity level. Is a bitwise sum, of:
+.br
+1: 0=Suppress/1=Display "playback" text
+.br
+2: 0=Suppress/1=Display "status" text
+.br
+4: 0=Suppress/1=Display "warning" text
+.TP 8
+.B -volume\fP <0-63>
+Specify the volume at which to play back the module.
+The range of \fB-volume\fP is not connected with the audio
+hardware. Use of \fB-volume\fP overrides any master volume
+setting present in the music files.
+.br
+It is a \fBfeature\fP of \fIEkaviel\fP that volumes of 64 and up
+can be specified at run-time, thus allowing the user
+to amplify quiet modules. Volume levels greater than
+the recommended range will ordinarily produce output
+that is saturated (akin to having corrupt samples).
+.SH CONTROLS
+During playback, the following controls are available:
+.TP 8
+.B ^N
+Jump to next song in list
+.TP 8
+.B ^V
+Freeze/unfreeze scrolling display
+.TP 8
+.B ESCape
+Quit the player
+.TP 8
+.B <
+Rewind to previous block in song
+.TP 8
+.B >
+Fast forward to next block in song
+.SH MENUS
+The main menu can be recognised by the string '-EKAVIEL-' in
+the top left hand corner of the screen. Activating sub-menus
+is achieved by pressing a combination of the control key and
+some other letter. For the '\fB^T\fPune' menu, this is CTRL-T.
+.br
+For the other menus, you will see something like '[TUNE]' in
+the top left hand corner of the screen. The first letters of
+the options (without CTRL) will activate them. At this point
+the usual effects of pressing the keys alone are disabled.
+.SH DETAILS
+\fIEkaviel\fP runs in a curses-driven window, and has a basic menu
+and keyboard-driven interface once started.
+.SH CAPABILITIES
+\fIEkaviel\fP is the successor to modplay, another player, and the
+following additional facilities are provided:
+.br
+o SGI audio is handled in a less dodgy fashion
+.br
+o \fIEkaviel\fP provides additional Soundtracker effect support
+.br
+o Improved MMD0 support
+.br
+o Additionally handles MMD1 format (OctaMED v3+)
+.br
+o Supports loading of many popular compression formats
+.SH CAVEATS
+o \fIEkaviel\fP can't handle non-sample instruments (like modplay)
+o \fIEkaviel\fP's MMD2 support is buggy
+.br
+Only displays four channels (not important yet)
+.br
+The curses screen driver library (used for the "ekgui" front
+end) may allow the stopping of ekaviel with ctrl-break. This
+is a feature of the curses library on some platforms, not of
+the ekaviel source code. In theory, a ctrl-break event could
+stop ekaviel prior to its deletion of a temporary file...
+.SH FILES
+~wills/bin/SG/ekaviel (Irix4 version)
+.br
+~wills/misc/mods/*.mod.lha
+.br
+~wills/misc/mods/*.mmd.lha
+.SH ENVIRONMENT
+.TP 8
+.B $MODPATH\fP
+Where to locate modules not in the current directory
+.SH COMPILE-TIME
+.TP 8
+.B -DDEFAULT_OUTRATE=<value>
+Default \fBoutrate\fP level for interactivity level 2
+.TP 8
+.B -DHAS_EKGUI
+Use the curses sceen handling libraries (rather than
+stdin and stdout)
+.TP 8
+.B -DSLOWCPU
+Use -limit by default, rather than -unlimit
+.TP 8
+.B -DSLOW_DISPLAY
+Ekaviel normally maintains a buffer for each note of
+the song, and sprintf() is used at load time to make
+the text representation. If SLOW_DISPLAY is defined,
+the sprintf() calls are mid-playback instead and the
+memory requirement is less (but CPU demand greater).
+.SH BUGS
+That blond fella? That's Henry off of Neighbours, that is!
+.SH But seriously:
+Please mail me a bug-report if you find any. I suspect there
+may be quite a few, so happy hunting! No reports for missing
+effects, I know about those.
+.SH AUTHOR
+William "Wills" Towle, wills@scs.leeds.ac.uk

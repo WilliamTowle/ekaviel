@@ -1,0 +1,21 @@
+CC:=gcc -g
+LD:=gcc
+UNAME_S:=$(shell uname -s)
+OSDEFS:=-DOS_$(UNAME_S)
+
+HAVE_FILEIO:=y
+
+#ifdef AMIGA
+#ifdef DEVEL
+#ifdef DEVEL_R54A
+#ifdef HAS_EKGUI
+#ifdef HAS_GZIP	/* if FS is case insensitive, .z and .Z will match  */
+#ifdef I2RATE
+#ifdef IRIX4
+#ifdef LITERAL	/* not actually how it's done */
+#ifdef NOTIFY
+#ifdef OCTAVES
+#ifdef OS_Linux
+#ifdef SCREAMTRACKER
+#ifdef SLOWCPU
+#ifdef SLOW_DISPLAY

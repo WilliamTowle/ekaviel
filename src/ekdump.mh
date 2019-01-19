@@ -1,0 +1,120 @@
+# last mod WmT, 05/04/2007	[ (c) and GPLv2 2007 ]
+
+ifeq (${EKDUMP_SRCDIR},)
+
+USAGE_RULES+="ekdump - file information/sample extracter"
+
+## ...supporting directories
+
+EKDUMP_SRCDIR:=${SRCDIR}
+EKDUMP_OBJDIR:=${BINDIR}
+EKDUMP_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+include ${SRCDIR}/libformats.mh
+
+## ...files
+
+EKDUMP_DEPS:= ${EKDUMP_LIBDIR}/ekdump.d
+EKDUMP_OBJS:= ${EKDUMP_OBJDIR}/ekdump.o
+EKDUMP_SRCS:= $(patsubst ${EKDUMP_OBJDIR}%,${EKDUMP_SRCDIR}%,$(patsubst %.o,%.c,${EKDUMP_OBJS}))
+#EKDUMP_LIB:= ${EKDUMP_LIBDIR}/ekdump.a
+EKDUMP_PRE:= libformats
+EKDUMP_EXE:= ${EKDUMP_OBJDIR}/ekdump
+
+## ...command flags
+
+EKDUMP_CDFLAGS:= ${LIBFORMATS_CDFLAGS}
+EKDUMP_CIFLAGS:= ${LIBFORMATS_CIFLAGS}
+EKDUMP_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -lformats -lm
+
+# ...directory creation
+
+ifneq (${EKDUMP_OBJDIR},)
+${EKDUMP_OBJS}: ${EKDUMP_OBJDIR}
+ifneq (${EKDUMP_OBJDIR},${BINDIR})
+${EKDUMP_OBJDIR}:
+	mkdir -p ${EKDUMP_OBJDIR}
+endif
+endif
+
+ifneq (${EKDUMP_LIBDIR},)
+${EKDUMP_LIB}: ${EKDUMP_LIBDIR}
+ifneq (${EKDUMP_LIBDIR},${BINDIR})
+${EKDUMP_LIBDIR}:
+	mkdir -p ${EKDUMP_LIBDIR}
+endif
+endif
+
+
+## ...dependencies
+
+ifneq (${EKDUMP_DEPS},)
+HAVE_EKDUMP_DEPS:=$(shell [ -r ${EKDUMP_DEPS} ] && echo y,y)
+ifeq (${HAVE_EKDUMP_DEPS},y)
+include ${EKDUMP_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${EKDUMP_DEPS}: ${EKDUMP_LIBDIR} ${EKDUMP_SRCS}
+	@echo -n '' > ${EKDUMP_LIBDIR}/deps.tmp
+	@for SF in ${EKDUMP_SRCS} ; do \
+		${CC} -MM ${EKDUMP_CDFLAGS} ${EKDUMP_CIFLAGS} ${EKDUMP_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${EKDUMP_OBJDIR}/%" \
+			>> ${EKDUMP_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${EKDUMP_LIB}" ] || echo ${EKDUMP_LIB}': '${EKDUMP_OBJS} >> ${EKDUMP_LIBDIR}/deps.tmp
+	@[ -z "${EKDUMP_EXE}" ] || echo ${EKDUMP_EXE}': '${LIBFORMATS_LIB}' '${EKDUMP_OBJS} >> ${EKDUMP_LIBDIR}/deps.tmp
+	[ -z "`diff ${EKDUMP_LIBDIR}/deps.tmp ${EKDUMP_DEPS} 2>&1`" ] || cp ${EKDUMP_LIBDIR}/deps.tmp ${EKDUMP_DEPS}
+	rm -f ${EKDUMP_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${EKDUMP_OBJS},)
+${EKDUMP_OBJDIR}/%.o:
+	${CC} ${EKDUMP_CDFLAGS} ${EKDUMP_CIFLAGS} -c ${EKDUMP_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${EKDUMP_EXE},)
+EXE_TARGETS+=ekdump
+
+.PHONY: ekdump
+ifneq (${EKDUMP_DEPS},)
+ekdump: ${EKDUMP_DEPS} ${EKDUMP_PRE}
+	${MAKE} ${EKDUMP_EXE}
+else
+ekdump: ${EKDUMP_PRE} ${EKDUMP_OBJS} ${EKDUMP_EXE}
+endif
+
+${EKDUMP_EXE}: ${EKDUMP_OBJDIR} ${EKDUMP_OBJS}
+	${LD} ${EKDUMP_OBJS} ${EKDUMP_LDFLAGS} -o ${EKDUMP_EXE}
+endif
+
+## ...library build rules
+
+ifneq (${EKDUMP_LIB},)
+LIB_TARGETS+=ekdump
+
+.PHONY: ekdump
+ifneq (${EKDUMP_DEPS},)
+ekdump: ${EKDUMP_DEPS} ${EKDUMP_PRE}
+	${MAKE} ${EKDUMP_LIB}
+else
+ekdump: ${EKDUMP_PRE} ${EKDUMP_OBJS} ${EKDUMP_LIB}
+endif
+
+${EKDUMP_LIB}: ${EKDUMP_LIBDIR} ${EKDUMP_OBJS}
+	${AR} ruvs ${EKDUMP_LIB} ${EKDUMP_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${EKDUMP_DEPS} ${EKDUMP_OBJS}
+REALCLEAN_TARGETS+=${EKDUMP_EXE} ${EKDUMP_LIB}
+
+endif

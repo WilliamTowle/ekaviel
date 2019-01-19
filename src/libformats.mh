@@ -1,0 +1,130 @@
+## libformats - settings
+
+ifeq (${LIBFORMATS_SRCDIR},)
+
+## ...supporting directories
+
+LIBFORMATS_SRCDIR:=${SRCDIR}/libformats
+LIBFORMATS_OBJDIR:=${BINDIR}/libformats
+LIBFORMATS_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+include ${SRCDIR}/libaudio.mh
+
+## ...files
+
+LIBFORMATS_DEPS:= ${LIBFORMATS_LIBDIR}/libformats.d
+LIBFORMATS_OBJS:=	${LIBFORMATS_OBJDIR}/argcv.o \
+		${LIBFORMATS_OBJDIR}/effects.o \
+		${LIBFORMATS_OBJDIR}/ekinstr.o \
+		${LIBFORMATS_OBJDIR}/eklist.o \
+		${LIBFORMATS_OBJDIR}/ekio.o \
+		${LIBFORMATS_OBJDIR}/ekmalloc.o \
+		${LIBFORMATS_OBJDIR}/eknote.o \
+		${LIBFORMATS_OBJDIR}/ekprefs.o \
+		${LIBFORMATS_OBJDIR}/eksong.o \
+		${LIBFORMATS_OBJDIR}/ektype.o \
+		${LIBFORMATS_OBJDIR}/fwrite.o \
+		${LIBFORMATS_OBJDIR}/load_med.o \
+		${LIBFORMATS_OBJDIR}/load_st.o \
+		${LIBFORMATS_OBJDIR}/loadbase.o
+LIBFORMATS_SRCS:= $(patsubst ${LIBFORMATS_OBJDIR}%,${LIBFORMATS_SRCDIR}%,$(patsubst %.o,%.c,${LIBFORMATS_OBJS}))
+LIBFORMATS_LIB:= ${LIBFORMATS_LIBDIR}/libformats.a
+LIBFORMATS_PRE:=
+#LIBFORMATS_EXE:= ${LIBFORMATS_OBJDIR}/libformats
+
+## ...command flags
+
+LIBFORMATS_CDFLAGS:= ${OSDEFS}
+LIBFORMATS_CIFLAGS:= -I${LIBFORMATS_SRCDIR} ${LIBAUDIO_CIFLAGS}
+#LIBFORMATS_LDFLAGS:= -L${IOLIB_LIBDIR} -liolib
+
+## ...directory creation
+
+ifneq (${LIBFORMATS_OBJDIR},)
+${LIBFORMATS_OBJS}: ${LIBFORMATS_OBJDIR}
+ifneq (${LIBFORMATS_OBJDIR},${BINDIR})
+${LIBFORMATS_OBJDIR}:
+	mkdir -p ${LIBFORMATS_OBJDIR}
+endif
+endif
+
+ifneq (${LIBFORMATS_LIBDIR},)
+${LIBFORMATS_LIB}: ${LIBFORMATS_LIBDIR}
+ifneq (${LIBFORMATS_LIBDIR},${BINDIR})
+${LIBFORMATS_LIBDIR}:
+	mkdir -p ${LIBFORMATS_LIBDIR}
+endif
+endif
+
+## ...dependencies
+
+ifneq (${LIBFORMATS_DEPS},)
+HAVE_LIBFORMATS_DEPS:=$(shell [ -r ${LIBFORMATS_DEPS} ] && echo y,y)
+ifeq (${HAVE_LIBFORMATS_DEPS},y)
+include ${LIBFORMATS_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${LIBFORMATS_DEPS}: ${LIBFORMATS_LIBDIR} ${LIBFORMATS_SRCS}
+	@echo -n '' > ${LIBFORMATS_LIBDIR}/deps.tmp
+	@for SF in ${LIBFORMATS_SRCS} ; do \
+		${CC} -MM ${LIBFORMATS_CDFLAGS} ${LIBFORMATS_CIFLAGS} ${LIBFORMATS_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${LIBFORMATS_OBJDIR}/%" \
+			>> ${LIBFORMATS_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${LIBFORMATS_LIB}" ] || echo ${LIBFORMATS_LIB}': '${LIBFORMATS_OBJS} >> ${LIBFORMATS_LIBDIR}/deps.tmp
+	@[ -z "${LIBFORMATS_EXE}" ] || echo ${LIBFORMATS_EXE}': '${LIBFORMATS_OBJS} >> ${LIBFORMATS_LIBDIR}/deps.tmp
+	[ -z "`diff ${LIBFORMATS_LIBDIR}/deps.tmp ${LIBFORMATS_DEPS} 2>&1`" ] || cp ${LIBFORMATS_LIBDIR}/deps.tmp ${LIBFORMATS_DEPS}
+	rm -f ${LIBFORMATS_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${LIBFORMATS_OBJS},)
+${LIBFORMATS_OBJDIR}/%o: ${LIBFORMATS_OBJDIR}
+	${CC} ${LIBFORMATS_CDFLAGS} ${LIBFORMATS_CIFLAGS} -c ${LIBFORMATS_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${LIBFORMATS_EXE},)
+EXE_TARGETS+=libformats
+
+.PHONY: libformats
+ifneq (${LIBFORMATS_DEPS},)
+libformats: ${LIBFORMATS_DEPS} ${LIBFORMATS_PRE}
+	${MAKE} ${LIBFORMATS_EXE}
+else
+libformats: ${LIBFORMATS_PRE} ${LIBFORMATS_OBJS} ${LIBFORMATS_EXE}
+endif
+
+${LIBFORMATS_EXE}: ${LIBFORMATS_OBJDIR} ${LIBFORMATS_OBJS}
+	${LD} ${LIBFORMATS_OBJS} ${LIBFORMATS_LDFLAGS} -o ${LIBFORMATS_EXE}
+endif
+
+## ...library build rules
+
+ifneq (${LIBFORMATS_LIB},)
+LIB_TARGETS+=libformats
+
+.PHONY: libformats
+ifneq (${LIBFORMATS_DEPS},)
+libformats: ${LIBFORMATS_DEPS} ${LIBFORMATS_PRE}
+	${MAKE} ${LIBFORMATS_LIB}
+else
+libformats: ${LIBFORMATS_PRE} ${LIBFORMATS_OBJS} ${LIBFORMATS_LIB}
+endif
+
+${LIBFORMATS_LIB}: ${LIBFORMATS_LIBDIR} ${LIBFORMATS_OBJS}
+	${AR} ruvs ${LIBFORMATS_LIB} ${LIBFORMATS_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${LIBFORMATS_DEPS} ${LIBFORMATS_OBJS}
+REALCLEAN_TARGETS+= ${LIBFORMATS_EXE} ${LIBFORMATS_LIB}
+
+endif

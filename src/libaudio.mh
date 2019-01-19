@@ -1,0 +1,120 @@
+## libaudio - settings
+
+ifeq (${LIBAUDIO_SRCDIR},)
+
+### ...supporting directories
+
+LIBAUDIO_SRCDIR:=${SRCDIR}/libaudio
+LIBAUDIO_OBJDIR:=${BINDIR}/libaudio
+LIBAUDIO_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+include ${SRCDIR}/libformats.mh
+
+### ...files
+
+LIBAUDIO_DEPS:= ${LIBAUDIO_LIBDIR}/libaudio.d
+LIBAUDIO_OBJS:=	${LIBAUDIO_OBJDIR}/player.o \
+		${LIBAUDIO_OBJDIR}/vchannel.o \
+		${LIBAUDIO_OBJDIR}/aud${UNAME_S}.o
+LIBAUDIO_SRCS:= $(patsubst ${LIBAUDIO_OBJDIR}%,${LIBAUDIO_SRCDIR}%,$(patsubst %.o,%.c,${LIBAUDIO_OBJS}))
+LIBAUDIO_LIB:= ${LIBAUDIO_LIBDIR}/libaudio.a
+LIBAUDIO_PRE:=
+#LIBAUDIO_EXE:= ${LIBAUDIO_OBJDIR}/libaudio
+
+## ...command flags
+
+#LIBAUDIO_CDFLAGS:= ${IOLIB_CDFLAGS}
+LIBAUDIO_CIFLAGS:= -I${LIBAUDIO_SRCDIR} -I${LIBFORMATS_SRCDIR}
+#LIBAUDIO_LDFLAGS:= -L${IOLIB_LIBDIR} -liolib
+
+## ...directory creation
+
+ifneq (${LIBAUDIO_OBJDIR},)
+${LIBAUDIO_OBJS}: ${LIBAUDIO_OBJDIR}
+ifneq (${LIBAUDIO_OBJDIR},${BINDIR})
+${LIBAUDIO_OBJDIR}:
+	mkdir -p ${LIBAUDIO_OBJDIR}
+endif
+endif
+
+ifneq (${LIBAUDIO_LIBDIR},)
+${LIBAUDIO_LIB}: ${LIBAUDIO_LIBDIR}
+ifneq (${LIBAUDIO_LIBDIR},${BINDIR})
+${LIBAUDIO_LIBDIR}:
+	mkdir -p ${LIBAUDIO_LIBDIR}
+endif
+endif
+
+
+## ...dependencies
+
+ifneq (${LIBAUDIO_DEPS},)
+HAVE_LIBAUDIO_DEPS:=$(shell [ -r ${LIBAUDIO_DEPS} ] && echo y,y)
+ifeq (${HAVE_LIBAUDIO_DEPS},y)
+include ${LIBAUDIO_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${LIBAUDIO_DEPS}: ${LIBAUDIO_LIBDIR} ${LIBAUDIO_SRCS}
+	@echo -n '' > ${LIBAUDIO_LIBDIR}/deps.tmp
+	@for SF in ${LIBAUDIO_SRCS} ; do \
+		${CC} -MM ${LIBAUDIO_CDFLAGS} ${LIBAUDIO_CIFLAGS} ${LIBAUDIO_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${LIBAUDIO_OBJDIR}/%" \
+			>> ${LIBAUDIO_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${LIBAUDIO_LIB}" ] || echo ${LIBAUDIO_LIB}': '${LIBAUDIO_OBJS} >> ${LIBAUDIO_LIBDIR}/deps.tmp
+	@[ -z "${LIBAUDIO_EXES}" ] || echo ${LIBAUDIO_EXES}': '${LIBAUDIO_OBJS} >> ${LIBAUDIO_LIBDIR}/deps.tmp
+	[ -z "`diff ${LIBAUDIO_LIBDIR}/deps.tmp ${LIBAUDIO_DEPS} 2>&1`" ] || cp ${LIBAUDIO_LIBDIR}/deps.tmp ${LIBAUDIO_DEPS}
+	rm -f ${LIBAUDIO_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${LIBAUDIO_OBJS},)
+${LIBAUDIO_OBJDIR}/%o: ${LIBAUDIO_OBJDIR}
+	${CC} ${LIBAUDIO_CDFLAGS} ${LIBAUDIO_CIFLAGS} -c ${LIBAUDIO_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${LIBAUDIO_EXE},)
+EXE_TARGETS+=libaudio
+
+.PHONY: libaudio
+ifneq (${LIBAUDIO_DEPS,)
+libaudio: ${LIBAUDIO_DEPS} ${LIBAUDIO_PRE}
+	${MAKE} ${LIBAUDIO_EXE}
+else
+libaudio: ${LIBAUDIO_PRE} ${LIBAUDIO_OBJS} ${LIBAUDIO_EXE}
+endif
+
+${LIBAUDIO_EXE}: ${LIBAUDIO_OBJDIR} ${LIBAUDIO_OBJS}
+	${LD} ${LIBAUDIO_OBJS} ${LIBAUDIO_LDFLAGS} -o ${LIBAUDIO_EXES}
+endif
+
+## ...library build rules
+
+ifneq (${LIBAUDIO_LIB},)
+LIB_TARGETS+= libaudio
+
+.PHONY: libaudio
+ifneq (${LIBAUDIO_DEPS},)
+libaudio: ${LIBAUDIO_DEPS} ${LIBAUDIO_PRE}
+	${MAKE} ${LIBAUDIO_LIB}
+else:
+libaudio: ${LIBAUDIO_PRE} ${LIBAUDIO_OBJS} ${LIBAUDIO_LIB}
+endif
+
+${LIBAUDIO_LIB}: ${LIBAUDIO_LIBDIR} ${LIBAUDIO_OBJS}
+	${AR} ruvs ${LIBAUDIO_LIB} ${LIBAUDIO_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${LIBAUDIO_DEPS} ${LIBAUDIO_OBJS}
+REALCLEAN_TARGETS+= ${LIBAUDIO_LIB}
+
+endif

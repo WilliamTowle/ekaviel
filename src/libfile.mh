@@ -1,0 +1,120 @@
+## libfile - settings
+
+ifeq (${LIBFILE_SRCDIR},)
+
+### ...supporting directories
+
+LIBFILE_SRCDIR:=${SRCDIR}/libfile
+LIBFILE_OBJDIR:=${BINDIR}/libfile
+LIBFILE_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+include ${SRCDIR}/libformats.mh
+
+### ...files
+
+LIBFILE_DEPS:= ${LIBFILE_LIBDIR}/libfile.d
+LIBFILE_OBJS:=	${LIBFILE_OBJDIR}/player.o \
+		${LIBFILE_OBJDIR}/vchannel.o \
+		${LIBFILE_OBJDIR}/aud${UNAME_S}.o
+LIBFILE_SRCS:= $(patsubst ${LIBFILE_OBJDIR}%,${LIBFILE_SRCDIR}%,$(patsubst %.o,%.c,${LIBFILE_OBJS}))
+LIBFILE_LIB:= ${LIBFILE_LIBDIR}/libfile.a
+LIBFILE_PRE:=
+#LIBFILE_EXE:= ${LIBFILE_OBJDIR}/libfile
+
+## ...command flags
+
+#LIBFILE_CDFLAGS:= ${IOLIB_CDFLAGS}
+LIBFILE_CIFLAGS:= -I${LIBFILE_SRCDIR} -I${LIBFORMATS_SRCDIR}
+#LIBFILE_LDFLAGS:= -L${IOLIB_LIBDIR} -liolib
+
+## ...directory creation
+
+ifneq (${LIBFILE_OBJDIR},)
+${LIBFILE_OBJS}: ${LIBFILE_OBJDIR}
+ifneq (${LIBFILE_OBJDIR},${BINDIR})
+${LIBFILE_OBJDIR}:
+	mkdir -p ${LIBFILE_OBJDIR}
+endif
+endif
+
+ifneq (${LIBFILE_LIBDIR},)
+${LIBFILE_LIB}: ${LIBFILE_LIBDIR}
+ifneq (${LIBFILE_LIBDIR},${BINDIR})
+${LIBFILE_LIBDIR}:
+	mkdir -p ${LIBFILE_LIBDIR}
+endif
+endif
+
+
+## ...dependencies
+
+ifneq (${LIBFILE_DEPS},)
+HAVE_LIBFILE_DEPS:=$(shell [ -r ${LIBFILE_DEPS} ] && echo y,y)
+ifeq (${HAVE_LIBFILE_DEPS},y)
+include ${LIBFILE_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${LIBFILE_DEPS}: ${LIBFILE_LIBDIR} ${LIBFILE_SRCS}
+	@echo -n '' > ${LIBFILE_LIBDIR}/deps.tmp
+	@for SF in ${LIBFILE_SRCS} ; do \
+		${CC} -MM ${LIBFILE_CDFLAGS} ${LIBFILE_CIFLAGS} ${LIBFILE_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${LIBFILE_OBJDIR}/%" \
+			>> ${LIBFILE_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${LIBFILE_LIB}" ] || echo ${LIBFILE_LIB}': '${LIBFILE_OBJS} >> ${LIBFILE_LIBDIR}/deps.tmp
+	@[ -z "${LIBFILE_EXES}" ] || echo ${LIBFILE_EXES}': '${LIBFILE_OBJS} >> ${LIBFILE_LIBDIR}/deps.tmp
+	[ -z "`diff ${LIBFILE_LIBDIR}/deps.tmp ${LIBFILE_DEPS} 2>&1`" ] || cp ${LIBFILE_LIBDIR}/deps.tmp ${LIBFILE_DEPS}
+	rm -f ${LIBFILE_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${LIBFILE_OBJS},)
+${LIBFILE_OBJDIR}/%o: ${LIBFILE_OBJDIR}
+	${CC} ${LIBFILE_CDFLAGS} ${LIBFILE_CIFLAGS} -c ${LIBFILE_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${LIBFILE_EXE},)
+EXE_TARGETS+=libfile
+
+.PHONY: libfile
+ifneq (${LIBFILE_DEPS,)
+libfile: ${LIBFILE_DEPS} ${LIBFILE_PRE}
+	${MAKE} ${LIBFILE_EXE}
+else
+libfile: ${LIBFILE_PRE} ${LIBFILE_OBJS} ${LIBFILE_EXE}
+endif
+
+${LIBFILE_EXE}: ${LIBFILE_OBJDIR} ${LIBFILE_OBJS}
+	${LD} ${LIBFILE_OBJS} ${LIBFILE_LDFLAGS} -o ${LIBFILE_EXES}
+endif
+
+## ...library build rules
+
+ifneq (${LIBFILE_LIB},)
+LIB_TARGETS+= libfile
+
+.PHONY: libfile
+ifneq (${LIBFILE_DEPS},)
+libfile: ${LIBFILE_DEPS} ${LIBFILE_PRE}
+	${MAKE} ${LIBFILE_LIB}
+else:
+libfile: ${LIBFILE_PRE} ${LIBFILE_OBJS} ${LIBFILE_LIB}
+endif
+
+${LIBFILE_LIB}: ${LIBFILE_LIBDIR} ${LIBFILE_OBJS}
+	${AR} ruvs ${LIBFILE_LIB} ${LIBFILE_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${LIBFILE_DEPS} ${LIBFILE_OBJS}
+REALCLEAN_TARGETS+= ${LIBFILE_LIB}
+
+endif

@@ -1,0 +1,133 @@
+# last mod WmT, 09/04/2007	[ (c) and GPLv2 2007 ]
+
+ifeq (${EKAVIEL_SRCDIR},)
+
+USAGE_RULES+="ekaviel - module player"
+
+## ...supporting directories
+
+EKAVIEL_SRCDIR:=${SRCDIR}
+EKAVIEL_OBJDIR:=${BINDIR}
+EKAVIEL_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+ifeq (${HAVE_FILEIO},y)
+include ${SRCDIR}/libfile.mh
+else
+include ${SRCDIR}/libaudio.mh
+endif
+include ${SRCDIR}/libformats.mh
+
+## ...files
+
+EKAVIEL_DEPS:= ${EKAVIEL_LIBDIR}/ekaviel.d
+EKAVIEL_OBJS:= ${EKAVIEL_OBJDIR}/ekaviel.o
+EKAVIEL_SRCS:= $(patsubst ${EKAVIEL_OBJDIR}%,${EKAVIEL_SRCDIR}%,$(patsubst %.o,%.c,${EKAVIEL_OBJS}))
+#EKAVIEL_LIB:= ${EKAVIEL_LIBDIR}/ekaviel.a
+ifeq (${HAVE_FILEIO},y)
+EKAVIEL_PRE:= libfile libformats
+else
+EKAVIEL_PRE:= libaudio libformats
+endif
+EKAVIEL_EXE:= ${EKAVIEL_OBJDIR}/ekaviel
+
+## ...command flags
+
+EKAVIEL_CDFLAGS:= ${LIBFORMATS_CDFLAGS}
+EKAVIEL_CIFLAGS:= ${LIBFORMATS_CIFLAGS}
+ifeq (${HAVE_FILEIO},y)
+EKAVIEL_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -lfile -lformats -lm
+else
+EKAVIEL_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -laudio -lformats -lm
+endif
+
+# ...directory creation
+
+ifneq (${EKAVIEL_OBJDIR},)
+${EKAVIEL_OBJS}: ${EKAVIEL_OBJDIR}
+ifneq (${EKAVIEL_OBJDIR},${BINDIR})
+${EKAVIEL_OBJDIR}:
+	mkdir -p ${EKAVIEL_OBJDIR}
+endif
+endif
+
+ifneq (${EKAVIEL_LIBDIR},)
+${EKAVIEL_LIB}: ${EKAVIEL_LIBDIR}
+ifneq (${EKAVIEL_LIBDIR},${BINDIR})
+${EKAVIEL_LIBDIR}:
+	mkdir -p ${EKAVIEL_LIBDIR}
+endif
+endif
+
+
+## ...dependencies
+
+ifneq (${EKAVIEL_DEPS},)
+HAVE_EKAVIEL_DEPS:=$(shell [ -r ${EKAVIEL_DEPS} ] && echo y,y)
+ifeq (${HAVE_EKAVIEL_DEPS},y)
+include ${EKAVIEL_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${EKAVIEL_DEPS}: ${EKAVIEL_LIBDIR} ${EKAVIEL_SRCS}
+	@echo -n '' > ${EKAVIEL_LIBDIR}/deps.tmp
+	@for SF in ${EKAVIEL_SRCS} ; do \
+		${CC} -MM ${EKAVIEL_CDFLAGS} ${EKAVIEL_CIFLAGS} ${EKAVIEL_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${EKAVIEL_OBJDIR}/%" \
+			>> ${EKAVIEL_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${EKAVIEL_LIB}" ] || echo ${EKAVIEL_LIB}': '${EKAVIEL_OBJS} >> ${EKAVIEL_LIBDIR}/deps.tmp
+	@[ -z "${EKAVIEL_EXE}" ] || echo ${EKAVIEL_EXE}': '${LIBFORMATS_LIB}' '${EKAVIEL_OBJS} >> ${EKAVIEL_LIBDIR}/deps.tmp
+	[ -z "`diff ${EKAVIEL_LIBDIR}/deps.tmp ${EKAVIEL_DEPS} 2>&1`" ] || cp ${EKAVIEL_LIBDIR}/deps.tmp ${EKAVIEL_DEPS}
+	rm -f ${EKAVIEL_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${EKAVIEL_OBJS},)
+${EKAVIEL_OBJDIR}/%.o:
+	${CC} ${EKAVIEL_CDFLAGS} ${EKAVIEL_CIFLAGS} -c ${EKAVIEL_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${EKAVIEL_EXE},)
+EXE_TARGETS+=ekaviel
+
+.PHONY: ekaviel
+ifneq (${EKAVIEL_DEPS},)
+ekaviel: ${EKAVIEL_DEPS} ${EKAVIEL_PRE}
+	${MAKE} ${EKAVIEL_EXE}
+else
+ekaviel: ${EKAVIEL_PRE} ${EKAVIEL_OBJS} ${EKAVIEL_EXE}
+endif
+
+${EKAVIEL_EXE}: ${EKAVIEL_OBJDIR} ${EKAVIEL_OBJS}
+	${LD} ${EKAVIEL_OBJS} ${EKAVIEL_LDFLAGS} -o ${EKAVIEL_EXE}
+endif
+
+## ...library build rules
+
+ifneq (${EKAVIEL_LIB},)
+LIB_TARGETS+=ekaviel
+
+.PHONY: ekaviel
+ifneq (${EKAVIEL_DEPS},)
+ekaviel: ${EKAVIEL_DEPS} ${EKAVIEL_PRE}
+	${MAKE} ${EKAVIEL_LIB}
+else
+ekaviel: ${EKAVIEL_PRE} ${EKAVIEL_OBJS} ${EKAVIEL_LIB}
+endif
+
+${EKAVIEL_LIB}: ${EKAVIEL_LIBDIR} ${EKAVIEL_OBJS}
+	${AR} ruvs ${EKAVIEL_LIB} ${EKAVIEL_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${EKAVIEL_DEPS} ${EKAVIEL_OBJS}
+REALCLEAN_TARGETS+=${EKAVIEL_EXE} ${EKAVIEL_LIB}
+
+endif

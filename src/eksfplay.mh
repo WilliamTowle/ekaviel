@@ -1,0 +1,121 @@
+# last mod WmT, 09/04/2007	[ (c) and GPLv2 2007 ]
+
+ifeq (${EKSFPLAY_SRCDIR},)
+
+USAGE_RULES+="eksfplay - sample player"
+
+## ...supporting directories
+
+EKSFPLAY_SRCDIR:=${SRCDIR}
+EKSFPLAY_OBJDIR:=${BINDIR}
+EKSFPLAY_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+include ${SRCDIR}/libaudio.mh
+include ${SRCDIR}/libformats.mh
+
+## ...files
+
+EKSFPLAY_DEPS:= ${EKSFPLAY_LIBDIR}/eksfplay.d
+EKSFPLAY_OBJS:= ${EKSFPLAY_OBJDIR}/eksfplay.o
+EKSFPLAY_SRCS:= $(patsubst ${EKSFPLAY_OBJDIR}%,${EKSFPLAY_SRCDIR}%,$(patsubst %.o,%.c,${EKSFPLAY_OBJS}))
+#EKSFPLAY_LIB:= ${EKSFPLAY_LIBDIR}/eksfplay.a
+EKSFPLAY_PRE:= libaudio libformats
+EKSFPLAY_EXE:= ${EKSFPLAY_OBJDIR}/eksfplay
+
+## ...command flags
+
+EKSFPLAY_CDFLAGS:= ${LIBFORMATS_CDFLAGS}
+EKSFPLAY_CIFLAGS:= ${LIBFORMATS_CIFLAGS}
+EKSFPLAY_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -laudio -lformats -lm
+
+# ...directory creation
+
+ifneq (${EKSFPLAY_OBJDIR},)
+${EKSFPLAY_OBJS}: ${EKSFPLAY_OBJDIR}
+ifneq (${EKSFPLAY_OBJDIR},${BINDIR})
+${EKSFPLAY_OBJDIR}:
+	mkdir -p ${EKSFPLAY_OBJDIR}
+endif
+endif
+
+ifneq (${EKSFPLAY_LIBDIR},)
+${EKSFPLAY_LIB}: ${EKSFPLAY_LIBDIR}
+ifneq (${EKSFPLAY_LIBDIR},${BINDIR})
+${EKSFPLAY_LIBDIR}:
+	mkdir -p ${EKSFPLAY_LIBDIR}
+endif
+endif
+
+
+## ...dependencies
+
+ifneq (${EKSFPLAY_DEPS},)
+HAVE_EKSFPLAY_DEPS:=$(shell [ -r ${EKSFPLAY_DEPS} ] && echo y,y)
+ifeq (${HAVE_EKSFPLAY_DEPS},y)
+include ${EKSFPLAY_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${EKSFPLAY_DEPS}: ${EKSFPLAY_LIBDIR} ${EKSFPLAY_SRCS}
+	@echo -n '' > ${EKSFPLAY_LIBDIR}/deps.tmp
+	@for SF in ${EKSFPLAY_SRCS} ; do \
+		${CC} -MM ${EKSFPLAY_CDFLAGS} ${EKSFPLAY_CIFLAGS} ${EKSFPLAY_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${EKSFPLAY_OBJDIR}/%" \
+			>> ${EKSFPLAY_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${EKSFPLAY_LIB}" ] || echo ${EKSFPLAY_LIB}': '${EKSFPLAY_OBJS} >> ${EKSFPLAY_LIBDIR}/deps.tmp
+	@[ -z "${EKSFPLAY_EXE}" ] || echo ${EKSFPLAY_EXE}': '${LIBFORMATS_LIB}' '${EKSFPLAY_OBJS} >> ${EKSFPLAY_LIBDIR}/deps.tmp
+	[ -z "`diff ${EKSFPLAY_LIBDIR}/deps.tmp ${EKSFPLAY_DEPS} 2>&1`" ] || cp ${EKSFPLAY_LIBDIR}/deps.tmp ${EKSFPLAY_DEPS}
+	rm -f ${EKSFPLAY_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${EKSFPLAY_OBJS},)
+${EKSFPLAY_OBJDIR}/%.o:
+	${CC} ${EKSFPLAY_CDFLAGS} ${EKSFPLAY_CIFLAGS} -c ${EKSFPLAY_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${EKSFPLAY_EXE},)
+EXE_TARGETS+=eksfplay
+
+.PHONY: eksfplay
+ifneq (${EKSFPLAY_DEPS},)
+eksfplay: ${EKSFPLAY_DEPS} ${EKSFPLAY_PRE}
+	${MAKE} ${EKSFPLAY_EXE}
+else
+eksfplay: ${EKSFPLAY_PRE} ${EKSFPLAY_OBJS} ${EKSFPLAY_EXE}
+endif
+
+${EKSFPLAY_EXE}: ${EKSFPLAY_OBJDIR} ${EKSFPLAY_OBJS}
+	${LD} ${EKSFPLAY_OBJS} ${EKSFPLAY_LDFLAGS} -o ${EKSFPLAY_EXE}
+endif
+
+## ...library build rules
+
+ifneq (${EKSFPLAY_LIB},)
+LIB_TARGETS+=eksfplay
+
+.PHONY: eksfplay
+ifneq (${EKSFPLAY_DEPS},)
+eksfplay: ${EKSFPLAY_DEPS} ${EKSFPLAY_PRE}
+	${MAKE} ${EKSFPLAY_LIB}
+else
+eksfplay: ${EKSFPLAY_PRE} ${EKSFPLAY_OBJS} ${EKSFPLAY_LIB}
+endif
+
+${EKSFPLAY_LIB}: ${EKSFPLAY_LIBDIR} ${EKSFPLAY_OBJS}
+	${AR} ruvs ${EKSFPLAY_LIB} ${EKSFPLAY_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${EKSFPLAY_DEPS} ${EKSFPLAY_OBJS}
+REALCLEAN_TARGETS+=${EKSFPLAY_EXE} ${EKSFPLAY_LIB}
+
+endif

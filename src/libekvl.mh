@@ -1,0 +1,135 @@
+## libekvl - settings
+
+ifeq (${LIBEKVL_SRCDIR},)
+
+## ...supporting directories
+
+LIBEKVL_SRCDIR:=${SRCDIR}/libekvl
+LIBEKVL_OBJDIR:=${BINDIR}/libekvl
+LIBEKVL_SRCS:=$(patsubst %.o,%c,${LIBEKVL_OBJS})
+LIBEKVL_LIBDIR:=${BINDIR}
+
+## ...prerequisites
+
+include ${SRCDIR}/libaudio.mh
+
+## ...files
+
+LIBEKVL_DEPS:= ${LIBEKVL_LIBDIR}/libekvl.d
+LIBEKVL_OBJS:=	${LIBEKVL_OBJDIR}/argcv.o \
+		${LIBEKVL_OBJDIR}/effects.o \
+		${LIBEKVL_OBJDIR}/ekinstr.o \
+		${LIBEKVL_OBJDIR}/ekio.o \
+		${LIBEKVL_OBJDIR}/eklist.o \
+		${LIBEKVL_OBJDIR}/ekmalloc.o \
+		${LIBEKVL_OBJDIR}/eknote.o \
+		${LIBEKVL_OBJDIR}/ekprefs.o \
+		${LIBEKVL_OBJDIR}/eksong.o \
+		${LIBEKVL_OBJDIR}/ektype.o \
+		${LIBEKVL_OBJDIR}/fwrite.o \
+		${LIBEKVL_OBJDIR}/load_med.o \
+		${LIBEKVL_OBJDIR}/load_st.o \
+		${LIBEKVL_OBJDIR}/loadbase.o \
+		${LIBEKVL_OBJDIR}/player.o \
+		${LIBEKVL_OBJDIR}/vchannel.o
+LIBEKVL_LIB:= ${LIBEKVL_LIBDIR}/libekvl.a
+#LIBEKVL_EXES:= ${LIBEKVL_OBJDIR}/libekvl
+
+## ...command flags
+
+#LIBEKVL_CDFLAGS:= ${IOLIB_CDFLAGS}
+LIBEKVL_CIFLAGS:= -I${LIBEKVL_SRCDIR} ${LIBEKVL_CIFLAGS}
+#LIBEKVL_LDFLAGS:= -L${IOLIB_LIBDIR} -liolib
+
+## directory creation
+
+ifneq (${LIBEKVL_OBJDIR},)
+${LIBEKVL_OBJS}: ${LIBEKVL_OBJDIR}
+ifneq (${LIBEKVL_OBJDIR},${BINDIR})
+${LIBEKVL_OBJDIR}:
+	mkdir -p ${LIBEKVL_OBJDIR}
+endif
+endif
+
+ifneq (${LIBEKVL_LIBDIR},)
+${LIBEKVL_LIB}: ${LIBEKVL_LIBDIR}
+ifneq (${LIBEKVL_LIBDIR},${BINDIR})
+${LIBEKVL_LIBDIR}:
+	mkdir -p ${LIBEKVL_LIBDIR}
+endif
+endif
+
+## ...dependencies
+
+ifeq (${LIBEKVL_DEPS},)
+# no dependences, simple
+.PHONY: libekvl
+libekvl: ${LIBEKVL_LIB} ${LIBEKVL_OBJS}
+else
+HAVE_LIBEKVL_DEPS:=$(shell [ -r ${LIBEKVL_DEPS} ] && echo y,y)
+ifeq (${HAVE_LIBEKVL_DEPS},y)
+include ${LIBEKVL_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${LIBEKVL_DEPS}: ${LIBEKVL_LIBDIR} ${LIBEKVL_SRCS}
+	@echo -n '' > ${LIBEKVL_LIBDIR}/deps.tmp
+	@for SF in ${LIBEKVL_SRCS} ; do \
+		${CC} -MM ${LIBEKVL_CDFLAGS} ${LIBEKVL_CIFLAGS} ${LIBEKVL_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${LIBEKVL_OBJDIR}/%" \
+			>> ${LIBEKVL_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${LIBEKVL_LIB}" ] || echo ${LIBEKVL_LIB}': '${LIBEKVL_OBJS} >> ${LIBEKVL_LIBDIR}/deps.tmp
+	@[ -z "${LIBEKVL_EXES}" ] || echo ${LIBEKVL_EXES}': '${LIBEKVL_OBJS} >> ${LIBEKVL_LIBDIR}/deps.tmp
+	[ -z "`diff ${LIBEKVL_LIBDIR}/deps.tmp ${LIBEKVL_DEPS} 2>&1`" ] || cp ${LIBEKVL_LIBDIR}/deps.tmp ${LIBEKVL_DEPS}
+	rm -f ${LIBEKVL_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${LIBEKVL_OBJS},)
+${LIBEKVL_OBJDIR}/%o: ${LIBEKVL_OBJDIR}
+	${CC} ${LIBEKVL_CDFLAGS} ${LIBEKVL_CIFLAGS} -c ${LIBEKVL_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${LIBEKVL_EXE},)
+EXE_TARGETS+=libaudio
+
+.PHONY: libaudio
+ifneq (${LIBEKVL_DEPS,)
+libaudio: ${LIBEKVL_DEPS} ${LIBEKVL_PRE}
+	${MAKE} ${LIBEKVL_EXE}
+else
+libaudio: ${LIBEKVL_PRE} ${LIBEKVL_OBJS} ${LIBEKVL_EXE}
+endif
+
+${LIBEKVL_EXE}: ${LIBEKVL_OBJDIR} ${LIBEKVL_OBJS}
+	${LD} ${LIBEKVL_OBJS} ${LIBEKVL_LDFLAGS} -o ${LIBEKVL_EXES}
+endif
+
+## ...library build rules
+
+ifneq (${LIBEKVL_LIB},)
+LIB_TARGETS+= libaudio
+
+.PHONY: libaudio
+ifneq (${LIBEKVL_DEPS},)
+libaudio: ${LIBEKVL_DEPS} ${LIBEKVL_PRE}
+	${MAKE} ${LIBEKVL_LIB}
+else:
+libaudio: ${LIBEKVL_PRE} ${LIBEKVL_OBJS} ${LIBEKVL_LIB}
+endif
+
+${LIBEKVL_LIB}: ${LIBEKVL_LIBDIR} ${LIBEKVL_OBJS}
+	${AR} ruvs ${LIBEKVL_LIB} ${LIBEKVL_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${LIBEKVL_DEPS} ${LIBEKVL_OBJS}
+REALCLEAN_TARGETS+= ${LIBEKVL_LIB}
+
+endif

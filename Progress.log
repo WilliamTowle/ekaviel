@@ -1,0 +1,160 @@
+** Fri 02 Dec 1994 ** ekaviel v0.1b **
+	File routines separated into several functions.
+	Added byte-by-byte error handling.
+** Mon 05 Dec 1994 **
+	Basic audio handler source written (separate file ekaudio.c)
+** Mon 12 Dec 1994 **
+	Minor bugfix to file loading.
+	Audio handling now considerably improved.
+** Fri 16 Dec 1994 **
+	Virtual audio level working (vchannel.c)
+	Memory allocation for song blocks buggy.
+
+** Tue 10 Jan 1995 **
+	Memory allocation / deallocation complete; bug (16 Dec) fixed.
+** Fri 20 Jan 1995 ** ekaviel v0.2b **
+	Effects now correctly handled by array of functions (effects.c)
+	Added minimal effect handling.
+** Mon 23 Jan 1995 **
+	Amending effects routines to handle arpeggio, except it's buggy
+
+** Wed 08 Feb 1995 ** ekaviel v1.0 **
+	Ekaviel does everything that modplay does properly
+** Tue 14 Feb 1995 **
+	Implemented portamento
+** Fri 24 Feb 1995 **
+	Cured bug in ST16 load.
+	MMD0 load does /not/ work for MMD1 - enquiry time!
+** Tue 28 Feb 1995 **
+	Gradually improving MMD load, still incomplete.
+	Implemented simple command line options (ekaviel.c).
+
+** Fri 10 Mar 1995 **
+	'Missing notes' bug located and fixed.....
+	Suspect server behaviour appears to be affecting files!
+** Tue 14 Mar 1995 ** ekaviel v1.1
+	MMD[1] load works! Yaay!
+** Wed 15 Mar 1995 **
+	Abstracted output properly (io.c).
+	Added basic keyboard read routine although is very slow!
+** Fri 17 Mar 1995 ** ekaviel v1.2
+	New concept: interactivity level, no keypresses -> speed
+	Debugged 'MED load sequence-list.
+** Wed 22 Mar 1995 **
+	Interactivity level fully implemented (default level = 1)
+	Keyboard command read abstracted (io.c)
+** Fri 24 Mar 1995 **
+	Implemented bleed level/speaker swap (ekaudio.c)
+** Mon 27 Mar 1995 **
+	Better memory allocation for linked list
+	Option to dump samples of song to current directory (fwrite.c)
+** Tue 28 Mar 1995 ** ekaviel v1.3
+	Cleaned up virtual channel code (vchannel.c)
+	Complains if there are no playable samples
+** Thu 30 Mar 1995 **
+	Debugged modplay's MMD0 load; now incorporated (fread.c)
+
+** Sat 01 Apr 1995 ** ekaviel v1.4
+	Initial curses interface, nice for input and output! (io.c)
+** Mon 03 Apr 1995 **
+	(Master) volume control on command line (ekaviel.c)
+	MED track volumes no longer ignored
+** Tue 04 Apr 1995 **
+	Ability to load compressed files (ekaviel.c)
+	Not dependent on extraction to stdout, unlike Modplay & others.
+** Thu 06 Apr 1995 **
+	First-draft of manual pages
+** Fri 07 Apr 1995 **
+	Debugged 'MED-load memory allocation
+	Basic menus (io.c)
+** Thu 20 Apr 1995 **
+	Cured non-curses keyboard read problem by explicit type casting
+** Fri 21 Apr 1995 ** ekaviel v1.5
+	Verbosity option, and display freeze/unfreeze (io.c)
+	Option of synchronised sample/display output.
+	Display menu; can change verbosity and synchronisation.
+	Cleaned up unused variables and other similar flaws.
+
+** Wed 04 May 1995 **
+	Report submission
+** Thu 05 May 1995 **
+	Implemented delayed note start
+
+** Tue 12 Sep 1995 **
+	Split file handling sources by module format
+	- Should now be easy to implement ScreamTracker support
+** Fri 15 Sep 1995 **
+	Sorted curses on IRIX5 (separate makefiles)
+** Fri 22 Sep 1995 **
+	Effects compliant with musfmt10 docs (see 'doc/00readme.txt')
+
+** Fri 11 Jan 1996 ** ekaviel v1.51
+	Support for starting a module mid-song (-seq _n_ option)
+** Fri 18 Jan 1996 **
+	Finished support for finetuning (mimics S3M's finetune method)
+	All periods are calculated - theoretical max note eliminated
+	Support for displaying notes outside 5-octave range
+** Fri 16 Feb 1996 **
+	-limit and -unlimit options (lookup or calculate note periods)
+** Fri 11 Oct 1996 **
+	curses.y/curses.n made by makefile
+
+** Fri 03 Jan 1997 **
+	Better abstraction of memory allocation (ekmalloc.c)
+
+** Sun 24 May 1998 ** ekaviel v1.52b
+	libekvl.a with: new ekinstr.[ch], ektype.[ch]...
+	...and improved argcv.[ch], loadbase.[ch], ekmalloc.h
+** Mon 25 May 1998 **
+	libekvl.a includes: ekaudio.[ch], effects.[ch], vchannel.[ch]
+	ekinstr.[ch]; eknote.[ch] replaces notes.[ch]
+** Wed 27 May 1998 ** eksfplay v0.9b
+	eksfplay works, plays fine for outrate>=16000
+** Thu 28 May 1998 ** ekdump v0.9b
+	libekvl.a with: preliminary load_st.[ch]
+	ekdump skeleton
+** Fri 29 May 1998 **
+	Improved handling of eksfplay/ekdump internal structures
+** Sat 30 May 1998 **
+	Note generation code moved from ekinstr.c -> vchannel.c
+	ekdump now compiles without "-lm -laudio"
+** Thu 18 Jun 1998 **
+	New ekaviel skeleton
+	GUI/audio codes separated from libekvl.a (own subdirectories)
+
+** Tue 15 Dec 1998 **
+	ekdump recognises compression in files, as per ekaviel.
+	load_med.c: song->blocks as upper bound to load_st_seqlist()
+
+** Thu 14 Jan 1999 ** ekaviel v1.53b
+	No "reload" on playing same file twice (strcmp() on filenames)
+	Temp file removed ASAP
+	Fixed "^N" key
+	-repeat option
+** Sat 16 Jan 1999 **
+	'EkErrFlag' from audio not ignored;
+	'EkErrFlag' from virtual channels not ignored;
+	New prototypes in playback routines.
+	Updated manual pages.
+	MED's "master volume" observed; '-volume' overrides (fixed).
+	MED's "song transpose" observed; '-transpose' overrides (new).
+** Tue 19 Jan 1999 ** ekaviel v1.53
+	MMD load ensures pitches within range of period table
+** Wed 20 Jan 1999 **
+	`make all` with `gcc -Wall`
+	Neatened usage message.
+	Added '-downtranspose' to specify -ve 'transpose' values.
+	Ensure period table reinitialised properly.
+
+** Thu 24 Jun 1999 ** ekaviel v1.54b
+	Started Linux port, keeping new `g{cc,++} -Wall` happy.
+	Preliminary 'ekconfig' setup mechanism.
+	ekio.c compiles under `uname -s`='Linux'
+** Fri 25 Jun 1999 **
+	Fixed malloc() vs free() imbalance in ek{song,instr}.c
+	'ekdump' reports names of files saved
+	New 'ekaudio.o' make rules
+** Thu 12 Aug 1999 **
+	libekvl.a makefile now in src/libekvl. `make all` OK on IRIX.
+** Fri 13 Aug 1999 **
+	Revised makefiles/ekconfig.

@@ -1,0 +1,63 @@
+#!/bin/sh
+
+exitmsg()
+{
+	echo $1
+	exit 1
+}
+
+audsrc()
+{
+	OS=`uname -s`
+	AUDSRC=''
+	if [ "$OS" = 'IRIX' ] ; then
+		AUDSRC="src/aud$OS"
+	elif [ "$OS" = 'Linux' ] ; then
+		AUDSRC="src/aud$OS"
+	else
+		echo "Unexpected OS in audsrc()"
+	fi
+	[ "$AUDSRC" ] || exitmsg "D'oh! No 'AUDSRC' set"
+	echo $AUDSRC
+}
+
+audlibs()
+{
+	OS=`uname -s`
+	if [ "$OS" = 'IRIX' ] ; then
+		echo "-laudio"
+	fi
+}
+
+compiler()
+{
+	OS=`uname -s`
+	CC=''
+	if [ "$OS" = 'IRIX' ] ; then
+		OSVERMAJ=`uname -r | sed 's/\..*//'`
+		if [ "$OSVERMAJ" -eq 6 ] ; then
+			CC=`which gcc-32`
+		elif [ "$OSVERMAJ" -eq 4 ] ; then
+			CC="`which gcc` -DIRIX4"
+		else
+			CC=`which gcc`
+		fi
+	elif [ "$OS" = 'Linux' ] ; then
+		CC=`which gcc`
+	else
+		echo "Unexpected OS in compiler()"
+	fi
+	[ "$CC" ] || exitmsg "D'oh! No 'CC' set"
+	echo "$CC -DOS_$OS"
+}
+
+[ "$1" ] || exitmsg "USAGE!!!"
+if [ "$1" = '--audsrc' ] ; then
+	audsrc
+elif [ "$1" = '--audlibs' ] ; then
+	audlibs
+elif [ "$1" = '--compiler' ] ; then
+	compiler
+else
+	exitmsg "USAGE!!!"
+fi

@@ -1,0 +1,52 @@
+.TH ekdump 1 v1.0 Ekdump
+.PD
+.SH NAME
+ekdump \- music module detailer/sample extraction utility
+.SH SYNOPSIS
+\fBekdump\fR [-prefix <\fIpath+text\fP>] <\fIsongname\fP> [<\fRrange\fP>...]
+.SH DESCRIPTION
+\fIekdump\fP shows song- and sample data from music module formats
+(eg. SoundTracker) loadable by \fIekaviel\fP. The modules' samples
+can be extracted by specifying identifying numbers or ranges
+for each [see RANGES], after the module's filename. The name
+resulting files take is derived from a prefix (default \fIInst\fP,
+which \fI-prefix\fP overrides, and may contain a target directory)
+and either the internal instrument filename (where specified
+in the module source), the instrument name (where present in
+the module), or the count of instruments so far dumped.
+.SH OPTIONS
+.TP 8
+.B -prefix <text>\fP
+Override the default file-prefix "Inst". Can be used
+to set a target directory for the files.
+.SH RANGES
+The ranges (identifying the sample numbers) are specified as
+follows (where \fI1\fP is the first):
+.TP 8
+.B n
+Extract the sample in the given position.
+.TP 8
+.B n\fP..\fBm\fP
+Extract samples in positions \fIn\fP to \fIm\fP
+.TP 8
+.B n\fP..
+Extract samples in positions \fIn\fP to \fI<last>\fP
+.TP 8
+.B \fP..\fBm\fP
+Extract samples in positions \fI1\fP to \fIm\fP
+.TP 8
+.B all
+A sensible synonym for the boundless range \fI..\fP
+.SH CAVEATS
+Dumping an unnamed sample more than once results in multiple
+copies of the dumped sample, because ekdump will have chosen
+filenames like \fIInst01\fP and \fIInst02\fP on successive writes.
+.SH FILES
+~wills/bin/ekdump
+.SH BUGS
+That blond fella? That's Henry off of Neighbours, that is!
+.SH But seriously:
+Please mail me a bug-report if you find any. I suspect there
+may be quite a few, so happy hunting!
+.SH AUTHOR
+William "Wills" Towle, wills@scs.leeds.ac.uk

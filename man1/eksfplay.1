@@ -1,0 +1,62 @@
+.TH eksfplay 1 v1.0 Eksfplay
+.PD
+.SH NAME
+eksfplay \- music sample player
+.SH SYNOPSIS
+\fBeksfplay\fR [\fIoptions\fP] <\fIfilename\fP [notecount] note(s)>[...]
+.SH DESCRIPTION
+\fIEksfplay\fP is a sample player for samples that have been taken
+out of soundtracker modules, or similar files. Specification
+of playback pitch is derived from the textual representation
+seen during the tracker's playback, eg "C-3" for C in octave
+3.
+.br
+For further details, see the DETAILS section
+.SH OPTIONS
+.TP 8
+.B -limit\fP
+Use a lookup table for extra speed. Nonstandard note
+frequencies are not allowed. Is the default for Irix
+4 machines.
+.br
+See also \fB-unlimit\fP
+.TP 8
+.B -outrate\fP <speed>
+Set the output rate in hertz (where hardware allows)
+Large values (typically 44.1K, ie. CD quality) imply
+greater CPU demand, which cannot necessarily be met;
+if not met, this results in "stuttered" output.
+.TP 8
+.B -unlimit\fP
+Forces a frequency calculation for each note played,
+hence (perhaps dramatically) increasing the CPU time
+required during playback. Also removes limits on the
+values that are normally imposed by software.
+.br
+See also \fB-limit\fP.
+.TP 8
+.B -verbose\fP
+Set verbosity on (reports instrument names and notes
+as they are played).
+.TP 8
+.B -volume\fP <0-63>
+Specify the volume at which to play back the module.
+The range of \fB-volume\fP is not connected with the audio
+hardware. Use of \fB-volume\fP overrides any master volume
+setting present in the music files.
+.br
+It is a deliberate feature that volumes above 63 can
+be specified, in order to amplify quiet samples. May
+result in output which sounds saturated where volume
+levels in the samples are "normal".
+.SH FILES
+~wills/bin/SG/eksfplay (Irix4 version)
+.br
+~wills/bin/ELF/eksfplay (Indy version)
+.SH BUGS
+That blond fella? That's Henry off of Neighbours, that is!
+.SH But seriously:
+Please mail me a bug-report if you find any. I suspect there
+may be quite a few, so happy hunting!
+.SH AUTHOR
+William "Wills" Towle, wills@scs.leeds.ac.uk

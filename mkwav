@@ -12,10 +12,12 @@ do_convert()
 
 	case ${TYPE} in
 	mono)
-		INOPTS="-t raw -r 44100 -w -s -c 1"
+		#INOPTS="-t raw -r 44100 -w -s -c 1"
+		INOPTS='-t raw -r 44100 -e signed-integer -b 16 -c 1'
 	;;
 	stereo)
-		INOPTS="-t raw -r 44100 -w -s -c 2"
+		#INOPTS="-t raw -r 44100 -w -s -c 2"
+		INOPTS='-t raw -r 44100 -e signed-integer -b 16 -c 2'
 	;;
 	*)
 		echo "$0 do_convert(): Unexpected TYPE ${TYPE}" 1>&2
@@ -23,7 +25,8 @@ do_convert()
 	;;
 	esac
 
-	sox ${INOPTS} ${FILE} -t ${OUTTYPE} output.${OUTTYPE}
+	#sox ${INOPTS} ${FILE} -t ${OUTTYPE} output.${OUTTYPE}
+	cat ${FILE} | sox ${INOPTS} - output.${OUTTYPE}
 }
 
 ##
@@ -36,7 +39,7 @@ case ${ACTION} in
 mono)		## convert mono@44100 'ekaviel' output
 	TYPE=mono do_convert $*
 ;;
-stereo)		## convert mono@44100 'ekaviel' output
+stereo)		## convert stereo@44100 'ekaviel' output
 	TYPE=stereo do_convert $*
 ;;
 *)

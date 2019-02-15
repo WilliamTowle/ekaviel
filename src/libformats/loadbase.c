@@ -246,7 +246,7 @@ char *uncompress(const char *argfile, int compressID)
 
 	sprintf(cmdstr, archive[compressID].patt, argfile, tempfile);
 	system(cmdstr);
-  return tempfile;
+  return strdup(tempfile);
 }
 
 

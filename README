@@ -1,4 +1,15 @@
-License:
+OVERVIEW
+========
+
+  'ekaviel' is a music player capable of playing SoundTracker and
+OctaMED format music files. Supplementary tools include 'ekdump', which
+reports on file structure and can extract samples from files, and
+'eksfplay', which can play the individual samples dumped from files.
+
+
+LICENSE
+=======
+
    Open Source software - copyright and GPLv2 apply. Briefly:
 	- No warranty/guarantee of fitness, use is at own risk
 	- No restrictions on strictly-private use/copying/modification
@@ -6,11 +17,32 @@ License:
 	- Redistributing? Include/offer to deliver original source
    Philosophy/full details at http://www.gnu.org/copyleft/gpl.html
 
+
+ABOUT THE BUILD
+===============
+
+  The 'ekaviel', 'ekdump', and 'eksfplay' programs can be built
+individually by name or together with `make all`. By default, binaries
+are created in the directory 'build-temp'.
+
+  Feature support provided by defines in the code is ultimately
+controlled by variables specified in the top-level file 'config.mh'.
+For example, the line containing "HAVE_FILEIO:=y" causes the build
+system to favour an audio wrapper that writes to file over one that
+uses hardware. For this particular case, the script 'mkwav' has been
+provided for conversion of the resulting raw audio dump into other
+(self-describing) audio formats (via the 'sox' utility, which needs
+to be installed separately).
+
+
+DESIGN NOTES
+============
+
 General:
 - source shall not exist in the top level directory
 - builds shall not take place in the source tree (treat it read-only)
 - builds shall not create their final targets in the top level
- 
+
 The top level makefile:
 - shall define at least the virtual targets 'help', 'default', and 'all'
 - shall define the virtual target 'default' first, with a sensible result

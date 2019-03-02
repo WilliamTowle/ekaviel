@@ -1,5 +1,5 @@
 #!/usr/bin/make
-# last mod WmT, 05/04/2007	[ (c) and GPLv2 2007 ]
+# last mod WmT, 2009-03-02	[ (c) and GPLv2 2007-2019 ]
 
 TOPLEV:=$(shell pwd)
 SRCDIR:=${TOPLEV}/src
@@ -33,7 +33,7 @@ ifeq (${USAGE_RULES},)
 	@grep '^[a-z][a-z]*:' Makefile | sed 's/^/	/ ; s/:.*//' | sort -u
 else
 	@echo "This 'Makefile' has rules for:"
-	@for R in ${USAGE_RULES} ; do echo -e "\t$$R" ; done
+	@for R in ${USAGE_RULES} ; do printf "\t$$R\n" ; done
 endif
 
 USAGE_RULES+= "all - build all of ${EXE_TARGETS}"
@@ -60,6 +60,6 @@ USAGE_RULES+= "realclean - clean as per fresh tarball extract"
 clean:
 	-rm -f ${CLEAN_TARGETS}
 
-realclean:
+realclean: clean
 	-rm -f ${REALCLEAN_TARGETS}
 #	-rm -f scripts/detect.cache

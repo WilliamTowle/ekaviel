@@ -12,11 +12,7 @@ EKAVIEL_LIBDIR:=${BINDIR}
 
 ## ...prerequisites
 
-ifeq (${HAVE_FILEIO},y)
-include ${SRCDIR}/libfile.mh
-else
 include ${SRCDIR}/libaudio.mh
-endif
 include ${SRCDIR}/libformats.mh
 
 ## ...files
@@ -25,22 +21,14 @@ EKAVIEL_DEPS:= ${EKAVIEL_LIBDIR}/ekaviel.d
 EKAVIEL_OBJS:= ${EKAVIEL_OBJDIR}/ekaviel.o
 EKAVIEL_SRCS:= $(patsubst ${EKAVIEL_OBJDIR}%,${EKAVIEL_SRCDIR}%,$(patsubst %.o,%.c,${EKAVIEL_OBJS}))
 #EKAVIEL_LIB:= ${EKAVIEL_LIBDIR}/ekaviel.a
-ifeq (${HAVE_FILEIO},y)
-EKAVIEL_PRE:= libfile libformats
-else
 EKAVIEL_PRE:= libaudio libformats
-endif
 EKAVIEL_EXE:= ${EKAVIEL_OBJDIR}/ekaviel
 
 ## ...command flags
 
 EKAVIEL_CDFLAGS:= ${LIBFORMATS_CDFLAGS} ${GLOBAL_CDFLAGS}
 EKAVIEL_CIFLAGS:= ${LIBFORMATS_CIFLAGS}
-ifeq (${HAVE_FILEIO},y)
-EKAVIEL_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -lfile -lformats -lm
-else
 EKAVIEL_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -laudio -lformats -lm
-endif
 
 # ...directory creation
 

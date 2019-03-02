@@ -15,9 +15,13 @@ include ${SRCDIR}/libformats.mh
 ### ...files
 
 LIBAUDIO_DEPS:= ${LIBAUDIO_LIBDIR}/libaudio.d
-LIBAUDIO_OBJS:=	${LIBAUDIO_OBJDIR}/player.o \
-		${LIBAUDIO_OBJDIR}/vchannel.o \
-		${LIBAUDIO_OBJDIR}/aud${UNAME_S}.o
+ifeq (${HAVE_FILEIO},y)
+LIBAUDIO_OBJS:=	${LIBAUDIO_OBJDIR}/audfile.o
+else
+LIBAUDIO_OBJS:=	${LIBAUDIO_OBJDIR}/aud${UNAME_S}.o
+endif
+LIBAUDIO_OBJS+=	${LIBAUDIO_OBJDIR}/player.o \
+		${LIBAUDIO_OBJDIR}/vchannel.o
 LIBAUDIO_SRCS:= $(patsubst ${LIBAUDIO_OBJDIR}%,${LIBAUDIO_SRCDIR}%,$(patsubst %.o,%.c,${LIBAUDIO_OBJS}))
 LIBAUDIO_LIB:= ${LIBAUDIO_LIBDIR}/libaudio.a
 LIBAUDIO_PRE:=

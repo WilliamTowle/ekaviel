@@ -21,7 +21,7 @@ int	outrate= DEFAULT_OUTRATE;
 
 #if 1	/* HAVE_FILEIO */
 FILE		*output;
-#else
+#else	/* Obsolete: Linux, OSS style */
 static Flag	noWait;
 static int	audio= -1;		/* /dev/dsp */
 static int	dspSampSz= 16;		/* eight or sixteen bits */
@@ -39,7 +39,7 @@ EkErrFlag audio_init(int hertz, Flag stereo, U_CHR bleed)
 #if 1	/* HAVE_FILEIO */
 	if ( (output= fopen("output", "w")) == NULL )
 	    return EK_ERR_NO_AUDIO;
-#else
+#else	/* Obsolete: Linux, OSS style */
 /* Linux requires we open /dev/dsp first... */
 	if ( (audio= open("/dev/dsp", O_WRONLY, 0)) == -1 )
 	    return EK_ERR_NO_AUDIO;
@@ -141,7 +141,7 @@ void audio_flushBuffers(Flag synchro)
 {	/* "audio" is the result from open() /dev/dsp */
 #if 1	/* HAVE_FILEIO */
 	fwrite(outSamp, sizeof(MSAMP), buffPos, output);
-#else
+#else	/* Obsolete: Linux, OSS style */
 	write(audio, outSamp, buffPos);
 #endif
 #if 1
@@ -149,7 +149,7 @@ void audio_flushBuffers(Flag synchro)
 	if (synchro)
 	    fprintf(stderr, "FUTURE: FIXME. 'synchro' not supported\n");
 #endif
-#else
+#else	/* OS_Irix */
 	if (synchro)
 	    while (audioBusy(buffPos)) sginap(1);
 #endif
@@ -164,7 +164,7 @@ void audio_close()
 	    if (!noWait)
 		fprintf(stderr, "FUTURE: FIXME: 'wait' not supported\n");
 #endif
-#else
+#else	/* OS_Irix */
 	    if (!noWait)
 		while (audioBusy(0)) sginap(1);
 #endif

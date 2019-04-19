@@ -199,7 +199,7 @@ static ARC
 archive[]= {
 	{ ".czip",	"unczip %s > %s"	},
 	{ ".tgz",	"tar -xz %s %s"		}, /* GNU tar */
-#ifdef HAS_GZIP	/* if FS is case insensitive, .z and .Z will match  */
+#ifdef HAVE_GZIP	/* if FS is case insensitive, .z and .Z will match  */
 	{ ".gz",	"gzip -dc %s > %s"	},
 	{ ".z",		"gzip -dc %s > %s"	},
 #else

@@ -88,7 +88,7 @@ ifneq (${LIBAUDIO_EXE},)
 EXE_TARGETS+=libaudio
 
 .PHONY: libaudio
-ifneq (${LIBAUDIO_DEPS,)
+ifneq (${LIBAUDIO_DEPS}${LIBAUDIO_PRE},)
 libaudio: ${LIBAUDIO_DEPS} ${LIBAUDIO_PRE}
 	${MAKE} ${LIBAUDIO_EXE}
 else

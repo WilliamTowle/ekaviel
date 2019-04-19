@@ -85,7 +85,7 @@ ifneq (${EKAVIEL_EXE},)
 EXE_TARGETS+=ekaviel
 
 .PHONY: ekaviel
-ifneq (${EKAVIEL_DEPS},)
+ifneq (${EKAVIEL_DEPS}${EKAVIEL_PRE},)
 ekaviel: ${EKAVIEL_DEPS} ${EKAVIEL_PRE}
 	${MAKE} ${EKAVIEL_EXE}
 else

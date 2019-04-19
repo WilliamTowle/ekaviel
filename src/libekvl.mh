@@ -99,7 +99,7 @@ ifneq (${LIBEKVL_EXE},)
 EXE_TARGETS+=libaudio
 
 .PHONY: libaudio
-ifneq (${LIBEKVL_DEPS,)
+ifneq (${LIBEKVL_DEPS}${LIBEKVL_PRE},)
 libaudio: ${LIBEKVL_DEPS} ${LIBEKVL_PRE}
 	${MAKE} ${LIBEKVL_EXE}
 else

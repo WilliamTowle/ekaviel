@@ -94,7 +94,7 @@ ifneq (${LIBFORMATS_EXE},)
 EXE_TARGETS+=libformats
 
 .PHONY: libformats
-ifneq (${LIBFORMATS_DEPS},)
+ifneq (${LIBFORMATS_DEPS}${LIBFORMATS_PRE},)
 libformats: ${LIBFORMATS_DEPS} ${LIBFORMATS_PRE}
 	${MAKE} ${LIBFORMATS_EXE}
 else

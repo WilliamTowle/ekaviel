@@ -84,7 +84,7 @@ ifneq (${EKDUMP_EXE},)
 EXE_TARGETS+=ekdump
 
 .PHONY: ekdump
-ifneq (${EKDUMP_DEPS},)
+ifneq (${EKDUMP_DEPS}${EKDUMP_PRE},)
 ekdump: ${EKDUMP_DEPS} ${EKDUMP_PRE}
 	${MAKE} ${EKDUMP_EXE}
 else

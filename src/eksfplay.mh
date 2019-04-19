@@ -85,7 +85,7 @@ ifneq (${EKSFPLAY_EXE},)
 EXE_TARGETS+=eksfplay
 
 .PHONY: eksfplay
-ifneq (${EKSFPLAY_DEPS},)
+ifneq (${EKSFPLAY_DEPS}${EKSFPLAY_PRE},)
 eksfplay: ${EKSFPLAY_DEPS} ${EKSFPLAY_PRE}
 	${MAKE} ${EKSFPLAY_EXE}
 else

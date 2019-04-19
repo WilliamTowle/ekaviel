@@ -12,6 +12,7 @@ EKAVIEL_LIBDIR:=${BINDIR}
 
 ## ...prerequisites
 
+include ${SRCDIR}/curses.mh
 include ${SRCDIR}/libaudio.mh
 include ${SRCDIR}/libformats.mh
 
@@ -24,11 +25,21 @@ EKAVIEL_SRCS:= $(patsubst ${EKAVIEL_OBJDIR}%,${EKAVIEL_SRCDIR}%,$(patsubst %.o,%
 EKAVIEL_PRE:= libaudio libformats
 EKAVIEL_EXE:= ${EKAVIEL_OBJDIR}/ekaviel
 
+ifeq (${HAVE_EKGUI},y)
+EKAVIEL_PRE+= curses
+endif
+
 ## ...command flags
 
 EKAVIEL_CDFLAGS:= ${LIBFORMATS_CDFLAGS} ${GLOBAL_CDFLAGS}
 EKAVIEL_CIFLAGS:= ${LIBFORMATS_CIFLAGS}
 EKAVIEL_LDFLAGS:= -L${LIBFORMATS_LIBDIR} -laudio -lformats ${LIBAUDIO_LDFLAGS} -lm
+
+ifeq (${HAVE_EKGUI},y)
+EKAVIEL_CDFLAGS+= -DHAVE_EKGUI
+EKAVIEL_CIFLAGS+= -Isrc/curses
+EKAVIEL_LDFLAGS+= -L${CURSES_LIBDIR} -lui -lcurses
+endif
 
 # ...directory creation
 

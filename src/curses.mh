@@ -1,0 +1,122 @@
+## curses - settings
+
+ifeq (${CURSES_SRCDIR},)
+
+### ...supporting directories
+
+CURSES_SRCDIR:=${SRCDIR}/curses
+CURSES_OBJDIR:=${BINDIR}/curses
+CURSES_LIBDIR:=${BINDIR}/
+
+## ...prerequisites
+
+#include ${SRCDIR}/libformats.mh
+
+### ...files
+
+CURSES_DEPS:= ${CURSES_LIBDIR}/curses.d
+CURSES_OBJS:= ${CURSES_OBJDIR}/ekgui.o
+CURSES_SRCS:= $(patsubst ${CURSES_OBJDIR}%,${CURSES_SRCDIR}%,$(patsubst %.o,%.c,${CURSES_OBJS}))
+CURSES_LIB:= ${CURSES_LIBDIR}/libui.a
+CURSES_PRE:=
+#CURSES_EXE:= ${CURSES_OBJDIR}/curses
+
+## ...command flags
+
+CURSES_CDFLAGS:= ${GLOBAL_CDFLAGS}
+CURSES_CIFLAGS:= -I${CURSES_SRCDIR} -I${LIBFORMATS_SRCDIR}
+CURSES_LDFLAGS:= -lasound
+
+ifeq (${HAVE_EKGUI},y)
+CURSES_CDFLAGS+= -DHAVE_EKGUI
+endif
+
+## ...directory creation
+
+ifneq (${CURSES_OBJDIR},)
+${CURSES_OBJS}: ${CURSES_OBJDIR}
+ifneq (${CURSES_OBJDIR},${BINDIR})
+${CURSES_OBJDIR}:
+	mkdir -p ${CURSES_OBJDIR}
+endif
+endif
+
+ifneq (${CURSES_LIBDIR},)
+${CURSES_LIB}: ${CURSES_LIBDIR}
+ifneq (${CURSES_LIBDIR},${BINDIR})
+${CURSES_LIBDIR}:
+	mkdir -p ${CURSES_LIBDIR}
+endif
+endif
+
+
+## ...dependencies
+
+ifneq (${CURSES_DEPS},)
+HAVE_CURSES_DEPS:=$(shell [ -r ${CURSES_DEPS} ] && echo y,y)
+ifeq (${HAVE_CURSES_DEPS},y)
+include ${CURSES_DEPS}
+endif
+
+# want dependencies -> how to (re)generate
+# (...may need extra ${CC} -MM processing for include lines)
+${CURSES_DEPS}: ${CURSES_LIBDIR} ${CURSES_SRCS}
+	@echo -n '' > ${CURSES_LIBDIR}/deps.tmp
+	@for SF in ${CURSES_SRCS} ; do \
+		${CC} -MM ${CURSES_CDFLAGS} ${CURSES_CIFLAGS} ${CURSES_SRCDIR}/`basename $${SF}` \
+			| sed "s%^%${CURSES_OBJDIR}/%" \
+			>> ${CURSES_LIBDIR}/deps.tmp ;\
+	done
+	@[ -z "${CURSES_LIB}" ] || echo ${CURSES_LIB}': '${CURSES_OBJS} >> ${CURSES_LIBDIR}/deps.tmp
+	@[ -z "${CURSES_EXES}" ] || echo ${CURSES_EXES}': '${CURSES_OBJS} >> ${CURSES_LIBDIR}/deps.tmp
+	[ -z "`diff ${CURSES_LIBDIR}/deps.tmp ${CURSES_DEPS} 2>&1`" ] || cp ${CURSES_LIBDIR}/deps.tmp ${CURSES_DEPS}
+	rm -f ${CURSES_LIBDIR}/deps.tmp
+endif
+
+## ...object build rules
+
+ifneq (${CURSES_OBJS},)
+${CURSES_OBJDIR}/%o: ${CURSES_OBJDIR}
+	${CC} ${CURSES_CDFLAGS} ${CURSES_CIFLAGS} -c ${CURSES_SRCDIR}/`basename $(patsubst %.o,%.c,$@)` -o $@
+endif
+
+## ...executable build rules
+
+ifneq (${CURSES_EXE},)
+EXE_TARGETS+=curses
+
+.PHONY: curses
+ifneq (${CURSES_DEPS}${${CURSES_PRE},)
+curses: ${CURSES_DEPS} ${CURSES_PRE}
+	${MAKE} ${CURSES_EXE}
+else
+curses: ${CURSES_PRE} ${CURSES_OBJS} ${CURSES_EXE}
+endif
+
+${CURSES_EXE}: ${CURSES_OBJDIR} ${CURSES_OBJS}
+	${LD} ${CURSES_OBJS} ${CURSES_LDFLAGS} -o ${CURSES_EXES}
+endif
+
+## ...library build rules
+
+ifneq (${CURSES_LIB},)
+LIB_TARGETS+= curses
+
+.PHONY: curses
+ifneq (${CURSES_DEPS},)
+curses: ${CURSES_DEPS} ${CURSES_PRE}
+	${MAKE} ${CURSES_LIB}
+else:
+curses: ${CURSES_PRE} ${CURSES_OBJS} ${CURSES_LIB}
+endif
+
+${CURSES_LIB}: ${CURSES_LIBDIR} ${CURSES_OBJS}
+	${AR} ruvs ${CURSES_LIB} ${CURSES_OBJS}
+endif
+
+## ...tidying
+
+CLEAN_TARGETS+= ${CURSES_DEPS} ${CURSES_OBJS}
+REALCLEAN_TARGETS+= ${CURSES_LIB}
+
+endif

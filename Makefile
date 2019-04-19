@@ -62,4 +62,5 @@ clean:
 
 realclean: clean
 	-rm -f ${REALCLEAN_TARGETS}
+	-rm -f output
 #	-rm -f scripts/detect.cache

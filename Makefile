@@ -36,7 +36,7 @@ else
 	@for R in ${USAGE_RULES} ; do printf "\t$$R\n" ; done
 endif
 
-USAGE_RULES+= "all - build all of ${EXE_TARGETS}"
+USAGE_RULES+= "all - build all of $(strip ${EXE_TARGETS})"
 all:	${EXE_TARGETS}
 
 # ,-----

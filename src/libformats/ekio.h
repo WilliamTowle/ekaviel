@@ -22,7 +22,7 @@
 #define EKVL_C_SAMFRST	8
 #define EKVL_C_SAMLAST	9
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 #define GUIFN_PARMS			void
 #define GUIFN_DECLARE_MEMBER(name)	EkErrFlag (*name)(GUIFN_PARMS)
 #define GUIFN_ARGS			GUIFN_PARMS
@@ -36,7 +36,7 @@ void warn3(const char*, const char*, const char*);
 void stat1(const char*);
 void stat2(const char*, const char*);
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 EkErrFlag io_init(GUIFN_DECLARE_MEMBER(gui_init));
 EkErrFlag io_restore(GUIFN_DECLARE_MEMBER(gui_restore));
 #else

@@ -14,7 +14,7 @@ typedef struct ekPrefs {
 	Flag	synchro,
 		loop,
 		shuffle;
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	Flag	hasgui;
 #endif
 	PERIODFN_DECLARE_MEMBER(periodfn)

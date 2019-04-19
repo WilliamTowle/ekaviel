@@ -20,7 +20,7 @@
 #include "argcv.h"
 #include "ekmalloc.h"
 #include "eklist.h"
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 #include "ekgui.h"
 #endif
 #include "ekio.h"
@@ -131,7 +131,7 @@ EkErrFlag playlist_clear(EkList *plist)
 static
 #endif
 EkErrFlag play_playlist(EkList *unplayed,
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 			Flag ekgui,
 #endif
 			Flag shuffle, Flag loopOption)
@@ -143,7 +143,7 @@ EkErrFlag play_playlist(EkList *unplayed,
   Flag		firstSong;
   EkSong	song;
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	error= io_init(ekgui? gui_init : NULL);
 #else
 	error= io_init();
@@ -321,7 +321,7 @@ EkErrFlag play_playlist(EkList *unplayed,
 	    return error;
 	}
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	return io_restore(ekgui? gui_restore : NULL);
 #else
 	return io_restore();
@@ -387,14 +387,14 @@ int main(int argc, const char **argv)
 
 		else if (strcmp(argText, "gui") == 0)
 		{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 		    defPrefs.hasgui= FL_TRUE;
 #endif
 		    if (parText) rewindArg();
 		}
 		else if (strcmp(argText, "nogui") == 0)
 		{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 		    defPrefs.hasgui= FL_FALSE;
 #endif
 		    if (parText) rewindArg();
@@ -619,7 +619,7 @@ int main(int argc, const char **argv)
 	{
 	case parseState_postsong:
 	    if (play_playlist(&playList,
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 				defPrefs.hasgui,
 #endif
 				defPrefs.shuffle, defPrefs.loop)

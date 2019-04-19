@@ -24,7 +24,7 @@
 #endif
 char		io_dbuff[IO_BUFFER_SIZE];
 static	Flag	io_is_init= FL_FALSE;
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 static	Flag	io_is_ekgui= FL_FALSE;
 #endif
 U_CHR		verbose= VBSF1_ALL,
@@ -59,7 +59,7 @@ void set_verbosity(int v)
 
 void error1(const char *e1)
 {
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (io_is_init && io_is_ekgui)
 	    ext_gui_error1(e1);
 	else
@@ -71,7 +71,7 @@ void warn1(const char *w1)
 {
 	if (verbose & VBSF1_WARN)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_init && io_is_ekgui)
 		ext_gui_warn1(w1);
 	    else
@@ -84,7 +84,7 @@ void warn2(const char *w1, const char *w2)
 {
 	if (verbose & VBSF1_WARN)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_init && io_is_ekgui)
 		ext_gui_warn2(w1, w2);
 	    else
@@ -97,7 +97,7 @@ void warn3(const char *w1, const char *w2, const char *w3)
 {
 	if (verbose & VBSF1_WARN)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_init && io_is_ekgui)
 		ext_gui_warn3(w1, w2, w3);
 	    else
@@ -110,7 +110,7 @@ void stat1(const char *s1)
 {
 	if (verbose & VBSF1_STAT)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_init && io_is_ekgui)
 		ext_gui_stat1(s1);
 	    else
@@ -123,7 +123,7 @@ void stat2(const char *s1, const char *s2)
 {
 	if (verbose & VBSF1_STAT)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_init && io_is_ekgui)
 		ext_gui_stat2(s1, s2);
 	    else
@@ -132,7 +132,7 @@ void stat2(const char *s1, const char *s2)
 	}
 }
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 EkErrFlag io_init(GUIFN_DECLARE_MEMBER(gui_init))
 #else
 EkErrFlag io_init()
@@ -140,7 +140,7 @@ EkErrFlag io_init()
 {
   EkErrFlag	error= EK_ERR_NONE;
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (gui_init)
 	{
 	    if ( (error= gui_init()) == EK_ERR_NONE )
@@ -164,7 +164,7 @@ EkErrFlag io_init()
 	    quietty.c_lflag &= ~(ICANON | ECHO);
 	    ioctl(fileno(stdin), TCSETA, &quietty);
 #endif
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	}
 #endif
 	io_is_init= FL_TRUE;
@@ -172,7 +172,7 @@ EkErrFlag io_init()
   return error;
 }
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 EkErrFlag io_restore(GUIFN_DECLARE_MEMBER(gui_restore))
 #else
 EkErrFlag io_restore()
@@ -182,7 +182,7 @@ EkErrFlag io_restore()
 
 	if (io_is_init)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_ekgui)
 		error= gui_restore();
 	    else
@@ -193,7 +193,7 @@ EkErrFlag io_restore()
 #else
 		ioctl(fileno(stdin), TCSETA, &sanitty);
 #endif
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    }
 #endif
 	}
@@ -204,7 +204,7 @@ EkErrFlag io_restore()
 static
 int io_kbread()
 {
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (io_is_ekgui)
 	    return ext_gui_kbread();
 	else
@@ -213,7 +213,7 @@ int io_kbread()
 	  char   key;
 	    if (read(fileno(stdin), &key, 1) == 0) return EOF;
 	  return (int) key;
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	}
 #endif
 }
@@ -238,7 +238,7 @@ void set_menu(int which)
 	    error1("Code calls undefined menu!");
 	}
 
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (io_is_ekgui)
 	    ext_gui_writemenu(io_dbuff);
 	else
@@ -251,7 +251,7 @@ int io_keycmd_0(int key)
 {
   int	command= EKVL_C_NONE;
   Flag	special=
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 		io_is_ekgui? ext_gui_special(key, &command) :
 #endif
 		FL_FALSE;
@@ -343,7 +343,7 @@ int io_keycmd()
   int	key= io_kbread(),
 	command= EKVL_C_NONE;
   Flag	special=
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 		io_is_ekgui? ext_gui_special(key, NULL) :
 #endif
 		FL_FALSE;
@@ -403,21 +403,21 @@ int io_keycmd()
 
 void disp_songtitle(const char *title)
 {
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (io_is_ekgui)
 	    ext_gui_disp_songtitle(title);
 	else
 	{
 #endif
 	    printf("Song title: %s\n", title);
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	}
 #endif
 }
 
 void disp_sampdata(int num, EkInstr *samp)
 {
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (io_is_ekgui)
 	    ext_gui_disp_sampdata(num, samp);
 	else
@@ -459,14 +459,14 @@ void disp_sampdata(int num, EkInstr *samp)
 	    }
 
 	    printf("%s\n", io_dbuff);
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	}
 #endif
 }
 
 void disp_blockhdr(int spos, int slen, int bnum, int blks, char *name)
 {
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	if (io_is_ekgui)
 	    ext_gui_disp_blockhdr(spos, slen, bnum, blks, name);
 	else
@@ -476,7 +476,7 @@ void disp_blockhdr(int spos, int slen, int bnum, int blks, char *name)
 		spos, slen, bnum, blks);
 	    if (name) strcat(io_dbuff, name);
 	    printf("%s\n", io_dbuff);
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	}
 #endif
 }
@@ -485,7 +485,7 @@ void dbuff_blockpos(int pos)
 {
 	if (verbose & VBSF1_PLAY)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_ekgui)
 		ext_gui_dbuff_blockpos(pos);
 	    else
@@ -495,7 +495,7 @@ void dbuff_blockpos(int pos)
 		    sprintf(io_dbuff, "\n%03d !", pos);
 		else
 		    sprintf(io_dbuff, "%03d !", pos);
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    }
 #endif
 	}
@@ -506,7 +506,7 @@ void dbuff_channel(int pitch, U_CHR instr, U_CHR fx, U_CHR fxdat)
 {
 	if (verbose & VBSF1_PLAY)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_ekgui)
 		ext_gui_dbuff_channel(pitch, instr, fx, fxdat);
 	    else
@@ -519,7 +519,7 @@ void dbuff_channel(int pitch, U_CHR instr, U_CHR fx, U_CHR fxdat)
 		sprintf(temp, " %3s %2s %02X%02X !",
 			ptchName[p], instName[instr], fx, fxdat);
 		strcat(io_dbuff, temp);
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    }
 #endif
 	}
@@ -529,7 +529,7 @@ void dbuff_channel(const char *data)
 {
 	if (verbose & VBSF1_PLAY)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_ekgui)
 		ext_gui_dbuff_channel(data);
 	    else
@@ -538,7 +538,7 @@ void dbuff_channel(const char *data)
 		strcat(io_dbuff, " ");
 		strcat(io_dbuff, data);
 		strcat(io_dbuff, " !");
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    }
 #endif
 	}
@@ -549,14 +549,14 @@ void dbuff_flush()
 {
 	if (verbose & VBSF1_PLAY)
 	{
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    if (io_is_ekgui)
 		ext_gui_dbuff_flush();
 	    else
 	    {
 #endif
 		printf("%s\n", io_dbuff);
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 	    }
 #endif
 	}

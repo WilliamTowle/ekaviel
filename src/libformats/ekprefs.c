@@ -38,13 +38,13 @@ fprintf(stderr, "prefs: %s\n", EKPREFS_FIELD(*prefs, stereo)? "stereo" : "mono")
 	    EKPREFS_FIELD(*prefs, synchro)= FL_FALSE;
 	    EKPREFS_FIELD(*prefs, loop)= FL_FALSE;
 	    EKPREFS_FIELD(*prefs, shuffle)= FL_FALSE;
-#ifdef HAS_EKGUI
+#ifdef HAVE_EKGUI
 #ifdef DEVEL
 	    EKPREFS_FIELD(*prefs, hasgui)= FL_FALSE;
 #else
 	    EKPREFS_FIELD(*prefs, hasgui)= FL_TRUE;
 #endif
-#endif	/* HAS_EKGUI */
+#endif	/* HAVE_EKGUI */
 	    return EK_ERR_NONE;
 	}
 }
